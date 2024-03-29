@@ -73,7 +73,14 @@ class EP_Fixture {
 
 	public function getCompetition() {
 		if ($this->competition) return $this->competition;
-		return new EP_Competition(get_post_meta($this->getId(),"competition",true));
+        if (get_post_meta($this->getId(),"competition",true)) {
+            $this->competition = EP_Competition(get_post_meta($this->getId(), "competition", true));
+        }
+        else {
+            update_post_meta($this->getId(), "competition", EP_Competition::getCurrentCompetition()->getId());
+            $this->competition = EP_Competition::getCurrentCompetition();
+        }
+        return $this->competition;
 	}
 
 	public function getGoals($order,$live=false) {

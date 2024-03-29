@@ -74,7 +74,7 @@ class EP_Fixture {
 	public function getCompetition() {
 		if ($this->competition) return $this->competition;
         if (get_post_meta($this->getId(),"competition",true)) {
-            $this->competition = EP_Competition(get_post_meta($this->getId(), "competition", true));
+            $this->competition = new EP_Competition(get_post_meta($this->getId(), "competition", true));
         }
         else {
             update_post_meta($this->getId(), "competition", EP_Competition::getCurrentCompetition()->getId());
@@ -311,6 +311,10 @@ class EP_Fixture {
 		return date ("d/m/Y H:i",strtotime(get_post_meta($this->getId(),'date',true)));
 	}
 
+    public function setDate($date) {
+        return update_post_meta($this->getId(),'date',$date);
+    }
+
 	public function getRawDate() {
 		return get_post_meta($this->getId(),'date',true);
 	}
@@ -367,7 +371,7 @@ class EP_Fixture {
 		// Mandatory fields to set a fixture on Enroporra
 		if (!isset($args["competition"])||!isset($args["fixture_number"])||!isset($args["tournament"])||!isset($args["label_team1"])||!isset($args["label_team2"]))
 			throw new Exception(sprintf('Malformed array of args creating a fixture at EP_Fixture, some required field/s is/are missing.'),-1);
-		if (!is_object($args["competition"]) || get_class($args["competition"]!="EP_Competition"))
+		if (!is_object($args["competition"]) || get_class($args["competition"])!="EP_Competition")
 			throw new Exception(sprintf('Argument "competition" is not a valid EP_Competition object.'),-1);
 		$new_fixture_id = wp_insert_post(array('post_title'=>$args["fixture_number"].' - '.EP_Competition::$tournament[$args["tournament"]],'post_type'=>'fixture','post_status'=>'publish'));
 		if (is_wp_error($new_fixture_id))

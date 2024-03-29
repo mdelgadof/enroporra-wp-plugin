@@ -435,12 +435,27 @@ class EP_Competition {
     public function setCompetitionFixtures() {
         if (!file_exists($json_filename = ENROPORRA_PATH."data/".$this->getTeamsNumber().".json"))
             throw new Exception('Configuration file not found at EP_Competition::setCompetitionFixtures',-1);
-        if (is_null($fixtures = json_decode(file_get_contents($json_filename),$associative_array=true)))
+        if (is_null($competition_data = json_decode(file_get_contents($json_filename),$associative_array=true)))
             throw new Exception('Malformed configuration file at EP_Competition::setCompetitionFixtures',-1);
+        $fixtures = $competition_data["fixtures"];
         foreach ($fixtures as $fixture_array) {
             $fixture_array["competition"]=$this;
-            try { $fixture = EP_Fixture::createFixture($fixture_array); }
-            catch (Exception $e) { throw new Exception($e->getMessage()." at EP_Competition::setCompetitionFixtures",-1); }
+            try {
+                $fixture = EP_Fixture::createFixture($fixture_array);
+            }
+            catch (Exception $e) {
+                throw new Exception($e->getMessage()." at EP_Competition::setCompetitionFixtures",-1);
+            }
+            if ($fixture->getTournament()=='groups') {
+                try {
+                    for ($i=1; $i<=2; $i++) {
+                        $fixture->setTeam($i,$this->getTeamByLabel($fixture->getLabelTeam($i)));
+                    }
+                }
+                catch (Exception $e) {
+                    throw new Exception($e->getMessage()." at EP_Competition::setCompetitionFixtures",-1);
+                }
+            }
         }
     }
 

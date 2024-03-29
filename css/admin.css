@@ -1,0 +1,124 @@
+.px50 .acf-input .acf-input-wrap input {
+    width: 50px;
+}
+
+body.post-type-fixture table td.goals.column-goals span {
+    font-size: 36px;
+    font-weight: bold;
+    position: relative;
+    top: 17px;
+}
+
+body.post-type-fixture table td.team1.column-team1 div.flag, body.post-type-fixture table td.team2.column-team2 div.flag {
+    float:left;
+    position: relative;
+    top: 15px;
+}
+td.team.column-team div.flag {
+    float:left;
+    position: relative;
+    top: 5px;
+}
+
+body.post-type-fixture table td.team1.column-team1 div.teamName, body.post-type-fixture table td.team2.column-team2 div.teamName {
+    position: relative;
+    top: 18px;
+    font-size: 24px;
+}
+body.post-type-team table td.team.column-team div.teamName {
+    position: relative;
+    top: 5px;
+    font-size: 18px;
+}
+body.post-type-team table .widefat td.column-team {
+    padding: 0;
+}
+
+body.post-type-player table td.column-team,body.post-type-player table th.column-team,body.post-type-player table td.column-photo,body.post-type-player table th.column-photo {
+    width: 50px;
+}
+
+.column-bet_number {
+    width: 6%;
+}
+td.bet_number {
+    font-size: 24px;
+    text-align: center;
+}
+td.bet_number span.paid {
+    background-color: green;
+    color: white;
+    padding: 3px 6px;
+}
+td.bet_number span.nopaid {
+    background-color: red;
+    color: white;
+    padding: 3px 6px;
+}
+.row-actions .payment img {
+    position: relative;
+    top: 3px;
+    width: 15px;
+}
+.row-actions .payment a:focus {
+    outline: 0;
+    box-shadow: none;
+}
+.betTeamName {
+    position: relative;
+    top: -10px;
+    font-size: 24px;
+}
+.betTeamResult {
+    position: relative;
+    top: -15px;
+    left: 5px;
+    width: 60px;
+    margin-right: 20px;
+    width: 47px;
+    margin-right: 20px;
+    font-size: 24px;
+    height: 32px;
+    padding-bottom: 3px;
+}
+.betFixtureResult {
+    display: flex;
+}
+
+div.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+div.dropdown div.dropdown-launcher {
+    height: 55px;
+    border: 1px solid #e74c3c;
+    border-radius: 10px;
+    width: 50%;
+    cursor: pointer;
+    padding: 5px 15px;
+}
+
+div.dropdown ul.dropdown-content {
+    display: none;
+    position: absolute;
+    width: 100%;
+    background-color: #FFFFFF;
+    border: 1px solid #AAAAAA;
+    scrollbar-arrow-color: #0c6ca0;
+    overflow-y: scroll;
+    max-height: 300px;
+    padding-left: 0;
+    z-index: 1;
+}
+
+div.dropdown ul.dropdown-content li {
+    display: block;
+    height: 55px;
+    cursor: pointer;
+    padding: 5px 15px;
+}
+div.dropdown ul.dropdown-content li:hover {
+    background-color: #EEEEEE;
+}

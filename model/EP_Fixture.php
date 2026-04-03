@@ -110,7 +110,7 @@ class EP_Fixture {
 
 	public function isLive() {
 		if ($this->isPlayed()) return false;
-		else if (date("Y-m-d H:i:s")>$this->getRawDate()) return true;
+		else if (gmdate("Y-m-d H:i:s")>$this->getRawDate()) return true;
 		else return false;
 	}
 

@@ -331,9 +331,9 @@ class EP_Competition {
 	 */
 	public function getStage() : int {
 		if ($this->stage) return $this->stage;
-		if (date("Y-m-d H:i:s",time()+$this->closedBetsTime)<$this->convertCETtoUTC($this->getFixtureById(1)->getRawDate())) return $this->stage = self::BEFORE_KICK_OFF;
+		if (gmdate("Y-m-d H:i:s",time()+$this->closedBetsTime)<$this->getFixtureById(1)->getRawDate()) return $this->stage = self::BEFORE_KICK_OFF;
 		foreach ($this->getFixtures(array("tournament"=>"groups")) as $fixture) if (!$fixture->isPlayed()) return $this->stage = self::GROUP_STAGE_PLAYING;
-		if (date("Y-m-d H:i:s",time()+$this->closedBetsTime)<$this->convertCETtoUTC($this->getFirstPlayoffFixture()->getRawDate())) return $this->stage = self::BEFORE_PLAYOFF;
+		if (gmdate("Y-m-d H:i:s",time()+$this->closedBetsTime)<$this->getFirstPlayoffFixture()->getRawDate()) return $this->stage = self::BEFORE_PLAYOFF;
 		if (!$this->getLastFixture()->isPlayed()) return $this->stage = self::PLAYOFF_PLAYING;
 		return $this->stage = self::AFTER_FINAL_GAME;
 	}
@@ -395,7 +395,7 @@ class EP_Competition {
      */
     public function getSecondsToStart() {
 		$today = time(); // UTC
-		$firstFixture = strtotime($this->convertCETtoUTC($this->getFirstDate()));
+		$firstFixture = strtotime($this->getFirstDate() . ' UTC');
 		if ($today>=$firstFixture) return 0;
 		return $firstFixture-$today-$this->closedBetsTime;
 	}

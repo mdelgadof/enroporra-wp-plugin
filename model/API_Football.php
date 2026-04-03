@@ -19,7 +19,7 @@ class API_Football {
 			CURLOPT_CUSTOMREQUEST => "GET",
 			CURLOPT_HTTPHEADER => [
 				"x-rapidapi-host: api-football-v1.p.rapidapi.com",
-				"x-rapidapi-key: 8bc8ed28d3msh1871d58382376cdp12501ajsne31f999389da"
+				"x-rapidapi-key: d98b3d458e17141e3a9a3dab97f09b47"
 			],
 		]);
 

@@ -311,6 +311,15 @@ class EP_Fixture {
 		return date ("d/m/Y H:i",strtotime(get_post_meta($this->getId(),'date',true)));
 	}
 
+	public function getDateHTML(string $format = 'datetime') : string {
+		$raw = $this->getRawDate();
+		if (!$raw) return '';
+		$iso = str_replace(' ', 'T', $raw) . 'Z';
+		$ts = strtotime($raw);
+		$fallback = ($format === 'date') ? date('d/m/Y', $ts) : date('d/m/Y H:i', $ts);
+		return '<time class="local-date" data-utc="' . $iso . '" data-format="' . $format . '">' . $fallback . '</time>';
+	}
+
     public function setDate($date) {
         return update_post_meta($this->getId(),'date',$date);
     }

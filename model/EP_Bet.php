@@ -466,7 +466,7 @@ class EP_Bet {
 				$labelPlayoffs = false;
 			}
 
-			$response.="<div class='date-bet'><small>".$fixture->getDate().", ";
+			$response.="<div class='date-bet'><small>".$fixture->getDateHTML().", ";
 			if ($fixture->getTournament()=="groups") $response.= __("Grupo","enroporra")." ".$fixture->getGroup();
 			else $response.=$fixture->getTournamentLabel();
 			$response.="</small></div>";
@@ -505,7 +505,7 @@ class EP_Bet {
 			/** @var EP_Team $team2 */
 			$team2 = $score["t2"];
 			if ($fixture->getTournament()=="groups") continue;
-			$response.="<div class='date-bet'><small>".$fixture->getDate().", ".$fixture->getTournamentLabel()."</small></div>";
+			$response.="<div class='date-bet'><small>".$fixture->getDateHTML().", ".$fixture->getTournamentLabel()."</small></div>";
 			$response.="<div class='fixture-bet'>".$team1->getFlagHTML(30)." ".$team1->getName()." <strong class='score-bet'>".$score["s1"]."</strong> ";
 			$response.=$team2->getFlagHTML(30)." ".$team2->getName()." <strong class='score-bet'>".$score["s2"]."</strong></div>";
 			if ($showPoints && $fixture->isPlayed()) {

@@ -4,6 +4,7 @@ class EP_Competition {
 
     public static $tournament = array(
         "groups"=>"Fase de grupos",
+        "last32"=>"Dieciseisavos de final",
         "last16"=>"Octavos de final",
         "last8"=>"Cuartos de final",
         "last4"=>"Semifinal",
@@ -535,6 +536,9 @@ class EP_Competition {
 		if ($this->getTeamsNumber()==32) {
 			$letters[]="G"; $letters[]="H";
 		}
+		if ($this->getTeamsNumber()==48) {
+			$letters[]="G"; $letters[]="H"; $letters[]="I"; $letters[]="J"; $letters[]="K"; $letters[]="L";
+		}
 		foreach ($letters as $letter) {
 			for ( $i = 1; $i <= EP_Competition::$teams_per_group; $i ++ ) {
 				$response[]=$letter.$i;
@@ -635,7 +639,7 @@ class EP_Competition {
 				}
 				else $fixture->deleteTeam(2);
 			}
-			else if ($fixture->getTournament()=="last16") {
+			else if ($fixture->getTournament()=="last32" || ($fixture->getTournament()=="last16" && substr($label1,0,1)!='W')) {
 				$pos1 = substr($label1,0,1);
 				$pos2 = substr($label2,0,1);
 				$group1 = substr($label1,1,1);

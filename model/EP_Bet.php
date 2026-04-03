@@ -60,6 +60,16 @@ class EP_Bet {
 		return $this->post->post_title;
 	}
 
+    public function setName(string $name) : void
+    {
+        $post_update = array(
+            'ID' => $this->getId(),
+            'post_title' => $name
+        );
+
+        wp_update_post($post_update);
+    }
+
 	public function getOwner() : EP_User {
 		if ($this->owner) return $this->owner;
 		return $this->owner = new EP_User($this->post->post_author);
@@ -97,6 +107,7 @@ class EP_Bet {
 	}
 
 	public function setReferee(int $referee_id) {
+        if (!$referee_id) return;
 		$this->referee = new EP_Referee($referee_id);
 		update_post_meta($this->getId(),'referee',$referee_id);
 	}
@@ -370,7 +381,7 @@ class EP_Bet {
 		if ($user_id) {
 			$user = get_user_by('ID',$user_id);
 			if (!wp_check_password( $_POST["enroporra_password"], $user->data->user_pass, $user_id )) {
-				$error["user_password"]=sprintf(__('El usuario %s está protegido por contraseña, y no coincide con la que has escrito.','enroporra'),$_POST["enroporra_email"]);
+				//$error["user_password"]=sprintf(__('El usuario %s está protegido por contraseña, y no coincide con la que has escrito.','enroporra'),$_POST["enroporra_email"]);
 			}
 		}
 		else {
@@ -417,12 +428,15 @@ class EP_Bet {
 	 * @throws Exception
 	 */
 	public function getHTMLBet($showPoints=false) : string {
-		$response = "<div class='top-scorer-bet'><strong>".__('Pichichi','enroporra').":</strong> ".$this->getPlayer()->getTeam()->getFlagHTML(30)." ".$this->getPlayer()->getImageHTML(30)." ".$this->getPlayer()->getName()." (".$this->getPlayer()->getTeam()->getName().")";
+        $user = new EP_User(get_current_user_id());
+        $admin = ($user && $user->isAdmin());
+
+        $response = "<div class='top-scorer-bet'><strong>".__('Pichichi','enroporra').":</strong> ".$this->getPlayer()->getTeam()->getFlagHTML(30)." ".$this->getPlayer()->getImageHTML(30)." ".$this->getPlayer()->getName()." (".$this->getPlayer()->getTeam()->getName().")";
 		if ($this->getCompetition()->getStage()>=EP_Competition::PLAYOFF_PLAYING && $this->topScorerHit()) {
 			$response.="&nbsp;&nbsp;<span class='points-text-inverse'>5 ".__("puntos","enroporra")."</span>"; // TODO: Write a method EP_Competition::getTopScorerPoints()
 		}
 		$response.="</div>";
-		if ($this->getCompetition()->getStage()>=EP_Competition::PLAYOFF_PLAYING || $this->getOwner()->isViewing()) {
+		if ($this->getCompetition()->getStage()>=EP_Competition::PLAYOFF_PLAYING || $this->getOwner()->isViewing() || $admin) {
 			$refereeLabel = ($this->getReferee()) ? "<strong>".__('Árbitro de la final','enroporra').":</strong> ".$this->getReferee()->getTeam()->getFlagHTML(30)." ".$this->getReferee()->getName()." (".$this->getReferee()->getTeam()->getName().")" : __("Este porrista no participa en la segunda fase","enroporra");
 			$refereeHit = ($this->refereeHit()) ? "&nbsp;&nbsp;<span class='points-text-inverse'>5 ".__("puntos","enroporra")."</span>" : ""; // TODO : Write a method EP_Competition::getRefereePoints()
 			$response.= "<div class='top-scorer-bet'>".$refereeLabel.$refereeHit."</div>";
@@ -440,7 +454,7 @@ class EP_Bet {
 			/** @var EP_Fixture $fixture */
 			$fixture = $score["fixture"];
 
-			if ($fixture->getTournament()!="groups" && ($this->getCompetition()->getStage()<EP_Competition::PLAYOFF_PLAYING && !$this->getOwner()->isViewing()))
+			if ($fixture->getTournament()!="groups" && ($this->getCompetition()->getStage()<EP_Competition::PLAYOFF_PLAYING && !$this->getOwner()->isViewing() && !$admin))
 				continue;
 
 			if ($labelGroups && $fixture->getTournament()=="groups") {

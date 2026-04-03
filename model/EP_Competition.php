@@ -91,7 +91,10 @@ class EP_Competition {
 		$tops_scorers = get_post_meta($this->getId(),'top_scorers',true);
 		$players = array();
 		for ($i=0; $i<$tops_scorers; $i++ ) {
-			$players[] = new EP_Player(get_post_meta($this->getId(),'top_scorers_'.$i."_scorer",true));
+            $playerPostId = intval(get_post_meta($this->getId(),'top_scorers_'.$i."_scorer",true));
+            if ($playerPostId) {
+                $players[] = new EP_Player($playerPostId);
+            }
 		}
 		return $players;
 	}
@@ -295,15 +298,41 @@ class EP_Competition {
 		return null;
 	}
 
+    /**
+     * @throws Exception
+     */
+    function getFirstPlayoffFixture() : EP_Fixture {
+        $candidates = [];
+        foreach ($this->getFixtures() as $fixture) {
+            if ($fixture->getTournament() !== "groups") {
+                $candidates[] = $fixture;
+            }
+        }
+        $date = '';
+        $elected = $candidates[0];
+        /**
+         * var $candidate EP_Fixture
+         */
+        foreach ($candidates as $candidate) {
+            if (!$date) {
+                $date = $candidate->getRawDate();
+            }
+            else if ($candidate->getRawDate() < $date) {
+                $date = $candidate->getRawDate();
+                $elected = $candidate;
+            }
+        }
+        return $elected;
+    }
+
 	/**
 	 * @throws Exception
 	 */
 	public function getStage() : int {
-		if ($_SERVER["HTTP_HOST"]=="2.enroporra.test") return self::PLAYOFF_PLAYING;
 		if ($this->stage) return $this->stage;
-		if (date("Y-m-d H:i:s",time()+3600+$this->closedBetsTime)<$this->getFixtureById(1)->getRawDate()) return $this->stage = self::BEFORE_KICK_OFF;
+		if (date("Y-m-d H:i:s",time()+$this->closedBetsTime)<$this->convertCETtoUTC($this->getFixtureById(1)->getRawDate())) return $this->stage = self::BEFORE_KICK_OFF;
 		foreach ($this->getFixtures(array("tournament"=>"groups")) as $fixture) if (!$fixture->isPlayed()) return $this->stage = self::GROUP_STAGE_PLAYING;
-		if (date("Y-m-d H:i:s",time()+3600+$this->closedBetsTime)<$this->getFixtureById($this->getLastGroupFixture()->getFixtureNumber()+1)->getRawDate()) return $this->stage = self::BEFORE_PLAYOFF;
+		if (date("Y-m-d H:i:s",time()+$this->closedBetsTime)<$this->convertCETtoUTC($this->getFirstPlayoffFixture()->getRawDate())) return $this->stage = self::BEFORE_PLAYOFF;
 		if (!$this->getLastFixture()->isPlayed()) return $this->stage = self::PLAYOFF_PLAYING;
 		return $this->stage = self::AFTER_FINAL_GAME;
 	}
@@ -348,17 +377,32 @@ class EP_Competition {
 	}
 
 	public function getFirstDate() {
-		return $this->getFixtureById(1)->getDate();
+		return $this->getFixtureById(1)->getRawDate();
 	}
 
-	public function getSecondsToStart() {
-		$today = time()+60*60; // Spain timezone at WorldCup: GMT+1
-		$firstFixture = strtotime(str_replace("/","-",$this->getFirstDate()));
+    /**
+     * @throws Exception
+     */
+    public function convertCETtoUTC(string $rawDate) : string {
+        $date = new DateTime($rawDate, new DateTimeZone('Europe/Madrid'));
+        $date->setTimezone(new DateTimeZone('UTC'));
+        return $date->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getSecondsToStart() {
+		$today = time(); // UTC
+		$firstFixture = strtotime($this->convertCETtoUTC($this->getFirstDate()));
 		if ($today>=$firstFixture) return 0;
 		return $firstFixture-$today-$this->closedBetsTime;
 	}
 
-	public function getTimeToStart() {
+    /**
+     * @throws Exception
+     */
+    public function getTimeToStart() {
 		$seconds = $this->getSecondsToStart();
 		if (!$seconds) return false;
 		$days = floor($seconds/86400);

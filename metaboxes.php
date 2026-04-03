@@ -175,6 +175,7 @@ function ep_bet_metabox_fixtures2 ($post) {
 	wp_nonce_field( 'ep_bets_metabox_nonce', 'ep_bets_nonce' );
 	foreach ($fixtures as $fixture) {
         $fixtureNumber = $fixture->getFixtureNumber();
+        if (!isset($scores[$fixtureNumber])) continue;
 		$team1 = $scores[$fixtureNumber]["t1"];
 		$team2 = $scores[$fixtureNumber]["t2"];
         if (is_null($team1) || is_null($team2)) continue;
@@ -409,6 +410,7 @@ function ep_bet_metabox_current_save($post_id) {
     $bet->setScores($scores); // TODO fix setScores
     $bet->setPlayer(new EP_Player(intval($_POST["enroporra_scorer"])));
 	$bet->setReferee(intval($_POST["enroporra_referee"])); // TODO Parameter should be EP_Referee
+    $bet->calculatePoints();
 }
 add_action('save_post_bet', 'ep_bet_metabox_current_save');
 

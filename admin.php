@@ -163,6 +163,7 @@ function enroporra_manage_player_posts_custom_column($column,$post_id) {
 add_filter('manage_bet_posts_columns',function($columns) {
 	$columns_new = array();
 	$columns_new['bet_number'] = __('Nº apuesta','enroporra');
+    $columns_new['competition'] = __('Competición','enroporra');
 	$columns_new['title'] = $columns['title'];
 	$columns_new['date'] = $columns['date'];
 	return $columns_new;
@@ -178,6 +179,9 @@ function enroporra_manage_bet_posts_custom_column($column,$post_id) {
 			$class = ($bet->isPaid()) ? "paid":"nopaid";
 			echo '<span class="'.$class.'" id="bet_number-'.$post_id.'">'.$bet->getBetNumber().'</span>';
 			break;
+        case 'competition' :
+            echo $bet->getCompetition()->getName();
+            break;
 	}
 }
 

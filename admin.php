@@ -185,6 +185,32 @@ function enroporra_manage_bet_posts_custom_column($column,$post_id) {
 	}
 }
 
+add_action('restrict_manage_posts', 'enroporra_bet_competition_filter');
+function enroporra_bet_competition_filter() {
+    global $pagenow;
+    if ($pagenow !== 'edit.php' || ($_GET['post_type'] ?? '') !== 'bet') return;
+    $competitions = EP_Competition::getAllCompetitions();
+    $selected = intval($_GET['competition_filter'] ?? 0);
+    echo '<select name="competition_filter">';
+    echo '<option value="0">'.__('Todas las competiciones','enroporra').'</option>';
+    foreach ($competitions as $competition) {
+        $sel = ($selected === $competition->getId()) ? ' selected' : '';
+        echo '<option value="'.$competition->getId().'"'.$sel.'>'.$competition->getName().'</option>';
+    }
+    echo '</select>';
+}
+
+add_action('pre_get_posts', 'enroporra_bet_competition_filter_query');
+function enroporra_bet_competition_filter_query($query) {
+    global $pagenow;
+    if (!$query->is_admin || $pagenow !== 'edit.php' || $query->get('post_type') !== 'bet') return;
+    $competition_id = intval($_GET['competition_filter'] ?? 0);
+    if (!$competition_id) return;
+    $meta_query = $query->get('meta_query') ?: array();
+    $meta_query[] = array('key' => 'competition', 'value' => $competition_id);
+    $query->set('meta_query', $meta_query);
+}
+
 /**
  * GENERAL
  */

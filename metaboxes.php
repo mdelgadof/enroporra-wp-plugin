@@ -170,7 +170,7 @@ function ep_bet_metabox_fixtures1 ($post) {
 function ep_bet_metabox_fixtures2 ($post) {
 	$bet = new EP_Bet($post->ID);
 	$competition = $bet->getCompetition();
-	$fixtures = array_merge($competition->getFixtures(array('tournament'=>'last16')), $competition->getFixtures(array('tournament'=>'last8')), $competition->getFixtures(array('tournament'=>'last4')), $competition->getFixtures(array('tournament'=>'final')));
+	$fixtures = array_merge($competition->getFixtures(array('tournament'=>'last32')), $competition->getFixtures(array('tournament'=>'last16')), $competition->getFixtures(array('tournament'=>'last8')), $competition->getFixtures(array('tournament'=>'last4')), $competition->getFixtures(array('tournament'=>'final')));
 	$scores = $bet->getScores();
 	wp_nonce_field( 'ep_bets_metabox_nonce', 'ep_bets_nonce' );
 	foreach ($fixtures as $fixture) {

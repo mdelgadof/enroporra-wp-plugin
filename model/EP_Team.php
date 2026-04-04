@@ -48,16 +48,8 @@ class EP_Team {
 
 		$response = get_post_meta($this->getId(),'team_api_id',$single=true);
 
-		if ($response) return $response;
-		if (!$this->getEnglishName()) return 0;
-
-		$api = new API_Football();
-		$api_result = $api->getTeamByName($this->getEnglishName());
-		if ($api_result->id) {
-			update_post_meta($this->getId(),'team_api_id',(int)$api_result->id);
-			return (int) $api_result->id;
-		}
-		else return 0;
+		if ($response) return (int) $response;
+		return 0;
 	}
 
 	/**

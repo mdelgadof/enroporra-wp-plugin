@@ -56,6 +56,7 @@ class EP_Fixture {
 	public function getTournamentLabel() {
 		$labelTournaments = array(
 			'groups' => __('Fase de grupos','enroporra'),
+			'last32' => __('Dieciseisavos de final','enroporra'),
 			'last16' => __('Octavos de final','enroporra'),
 			'last8' => __('Cuartos de final','enroporra'),
 			'last4' => __('Semifinales','enroporra'),

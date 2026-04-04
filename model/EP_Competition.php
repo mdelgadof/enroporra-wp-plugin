@@ -675,6 +675,10 @@ class EP_Competition {
 		return $bet_number;
 	}
 
+	public function getApiId(): int {
+		return (int) get_post_meta($this->getId(),'api_competition_id',true);
+	}
+
 	public function getOfficialSite() {
 		return get_post_meta($this->getId(),'official_website',true);
 	}

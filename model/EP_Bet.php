@@ -226,7 +226,9 @@ class EP_Bet {
 			if ($rewrite) $key++;
 			try {
 				$response[ $key ]["fixture"] = $this->getCompetition()->getFixtureById( $key );
-				if ($response[ $key ]["fixture"]->getTournament()=="groups" || $response[ $key ]["fixture"]->getTournament()=="last16") {
+				$t1_label = $response[$key]["fixture"]->getLabelTeam(1);
+				if ($response[ $key ]["fixture"]->getTournament()=="groups" || $response[ $key ]["fixture"]->getTournament()=="last32" ||
+					($response[ $key ]["fixture"]->getTournament()=="last16" && $t1_label[0] !== 'W')) {
 					$response[$key]["t1"]=$response[ $key ]["fixture"]->getTeam(1);
 					$response[$key]["t2"]=$response[ $key ]["fixture"]->getTeam(2);
 				}

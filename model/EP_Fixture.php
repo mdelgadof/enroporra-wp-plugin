@@ -94,6 +94,12 @@ class EP_Fixture {
 		return get_post_meta($this->getId(),"live_minute",true);
 	}
 
+	public function getLiveMinuteLabel(): string {
+		$m = $this->getLiveMinute();
+		if (!$m) return '';
+		return ($m === 'HT') ? 'HT' : $m . "'";
+	}
+
 	public function setLiveMinute(int $minute) {
 		return update_post_meta($this->getId(),'live_minute',$minute);
 	}

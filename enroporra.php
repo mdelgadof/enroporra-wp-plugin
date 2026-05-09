@@ -100,3 +100,6 @@ include ( plugin_dir_path( __FILE__ )."metaboxes.php");
 
 // Other functions
 include ( plugin_dir_path( __FILE__ )."inc/spanish-names.php");
+
+// Live scores REST endpoint and AJAX handler
+include ( plugin_dir_path( __FILE__ )."live-scores.php");

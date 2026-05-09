@@ -24,8 +24,8 @@ $unmatched = [];
 
 foreach ($fotmob_fixtures as $fm) {
     $fm_utc   = strtotime($fm['status']['utcTime']);
-    $fm_home  = ep_normalise_name($fm['home']['name']);
-    $fm_away  = ep_normalise_name($fm['away']['name']);
+    $fm_home  = ep_fotmob_to_wp_name(ep_normalise_name($fm['home']['name']));
+    $fm_away  = ep_fotmob_to_wp_name(ep_normalise_name($fm['away']['name']));
     $fm_id    = $fm['id'];
 
     $found = null;
@@ -41,6 +41,19 @@ foreach ($fotmob_fixtures as $fm) {
         if ($time_match && $team_match) {
             $found = $wp;
             break;
+        }
+    }
+
+    // Fallback: date-only match for TBD knockout fixtures ("Por conocer")
+    if (!$found) {
+        foreach ($wp_fixtures as $wp) {
+            $wp_utc  = strtotime($wp->getRawDate() . ' UTC');
+            $wp_home = ep_normalise_name($wp->getTeam(1)->getName());
+            if ($wp_home !== 'por conocer') continue; // only try TBD fixtures
+            if (abs($fm_utc - $wp_utc) <= 300) {
+                $found = $wp;
+                break;
+            }
         }
     }
 
@@ -64,10 +77,75 @@ if ($unmatched) {
     foreach ($unmatched as $line) echo "  $line\n";
 }
 
+/**
+ * Maps FotMob English team names to their normalised WP Spanish equivalents.
+ * Keys are normalised English names, values are normalised Spanish names.
+ */
+function ep_fotmob_to_wp_name(string $normalised_en): string {
+    static $map = [
+        // FotMob English (normalised) => WP Spanish (normalised)
+        // Names that differ between FotMob English and WP Spanish:
+        'south africa'           => 'sudafrica',
+        'south korea'            => 'corea del sur',
+        'czechia'                => 'rep checa',
+        'bosnia and herzegovina' => 'bosnia y herzegovina',
+        'usa'                    => 'ee uu',
+        'qatar'                  => 'catar',
+        'switzerland'            => 'suiza',
+        'brazil'                 => 'brasil',
+        'morocco'                => 'marruecos',
+        'haiti'                  => 'haiti',
+        'scotland'               => 'escocia',
+        'turkiye'                => 'turquia',
+        'germany'                => 'alemania',
+        'netherlands'            => 'paises bajos',
+        'japan'                  => 'japon',
+        'ivory coast'            => 'costa de marfil',
+        'sweden'                 => 'suecia',
+        'tunisia'                => 'tunez',
+        'spain'                  => 'espana',
+        'cape verde'             => 'cabo verde',
+        'belgium'                => 'belgica',
+        'egypt'                  => 'egipto',
+        'saudi arabia'           => 'arabia saudi',
+        'iran'                   => 'iran',
+        'new zealand'            => 'nueva zelanda',
+        'france'                 => 'francia',
+        'norway'                 => 'noruega',
+        'algeria'                => 'argelia',
+        'jordan'                 => 'jordania',
+        'dr congo'               => 'rd congo',
+        'england'                => 'inglaterra',
+        'croatia'                => 'croacia',
+        'panama'                 => 'panama',
+        // Same in both languages (map to self for clarity):
+        'mexico'                 => 'mexico',
+        'canada'                 => 'canada',
+        'curacao'                => 'curacao',
+        'ecuador'                => 'ecuador',
+        'ghana'                  => 'ghana',
+        'argentina'              => 'argentina',
+        'austria'                => 'austria',
+        'portugal'               => 'portugal',
+        'senegal'                => 'senegal',
+        'iraq'                   => 'iraq',
+        'colombia'               => 'colombia',
+        'paraguay'               => 'paraguay',
+        'australia'              => 'australia',
+        'uruguay'                => 'uruguay',
+        'uzbekistan'             => 'uzbekistan',
+    ];
+    return $map[$normalised_en] ?? $normalised_en;
+}
+
 function ep_normalise_name(string $name): string {
-    // Lowercase, remove accents, strip non-alpha
-    $name = mb_strtolower($name);
-    $name = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name);
+    // Lowercase
+    $name = mb_strtolower($name, 'UTF-8');
+    // Manual accent map (iconv TRANSLIT unreliable on this server)
+    $from = ['á','à','ä','â','ã','å','é','è','ë','ê','í','ì','ï','î','ó','ò','ö','ô','õ','ø','ú','ù','ü','û','ý','ÿ','ñ','ç','ğ','ș','ț','ș','ă'];
+    $to   = ['a','a','a','a','a','a','e','e','e','e','i','i','i','i','o','o','o','o','o','o','u','u','u','u','y','y','n','c','g','s','t','s','a'];
+    $name = str_replace($from, $to, $name);
+    // Strip non-alpha-numeric (removes dots, hyphens, etc.)
     $name = preg_replace('/[^a-z0-9 ]/', '', $name);
     return trim(preg_replace('/\s+/', ' ', $name));
 }

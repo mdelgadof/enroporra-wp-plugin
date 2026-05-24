@@ -343,17 +343,31 @@ class EP_Bet {
 		}
 		if (!$validationScores) throw new Exception('Scores are not properly filled at EP_Bet::createBet',-1);
 
-		if ( ! function_exists( 'post_exists' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/post.php' );
-		}
-
 		$title = normalizeSpanishName($args["name"]);
-		if (post_exists( $title,'','','bet')) {
-			$title.=" (2)";
-			$i=2;
+
+		// Check for duplicate name within THIS competition only (not across all competitions).
+		// post_exists() searches all bets globally, so we use get_posts() scoped by competition meta.
+		$nameExistsInCompetition = function(string $name) use ($competition): bool {
+			return !empty(get_posts(array(
+				'post_type'      => 'bet',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'title'          => $name,
+				'meta_query'     => array(
+					array(
+						'key'   => 'competition',
+						'value' => $competition->getId(),
+					)
+				)
+			)));
+		};
+
+		if ($nameExistsInCompetition($title)) {
+			$title .= " (2)";
+			$i = 2;
 		}
-		while (post_exists( $title,'','','bet')) {
-			$title = str_replace("(".$i.")","(".($i+1).")",$title);
+		while ($nameExistsInCompetition($title)) {
+			$title = str_replace("(" . $i . ")", "(" . ($i + 1) . ")", $title);
 			$i++;
 		}
 

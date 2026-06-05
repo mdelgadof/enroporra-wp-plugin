@@ -453,9 +453,13 @@ class EP_Bet {
 		}
 		$response.="</div>";
 		if ($this->getCompetition()->getStage()>=EP_Competition::PLAYOFF_PLAYING || $this->getOwner()->isViewing() || $admin) {
-			$refereeLabel = ($this->getReferee()) ? "<strong>".__('Árbitro de la final','enroporra').":</strong> ".$this->getReferee()->getTeam()->getFlagHTML(30)." ".$this->getReferee()->getName()." (".$this->getReferee()->getTeam()->getName().")" : __("Este porrista no participa en la segunda fase","enroporra");
-			$refereeHit = ($this->refereeHit()) ? "&nbsp;&nbsp;<span class='points-text-inverse'>5 ".__("puntos","enroporra")."</span>" : ""; // TODO : Write a method EP_Competition::getRefereePoints()
-			$response.= "<div class='top-scorer-bet'>".$refereeLabel.$refereeHit."</div>";
+			if ($this->getReferee()) {
+				$refereeLabel = "<strong>".__('Árbitro de la final','enroporra').":</strong> ".$this->getReferee()->getTeam()->getFlagHTML(30)." ".$this->getReferee()->getName()." (".$this->getReferee()->getTeam()->getName().")";
+				$refereeHit = ($this->refereeHit()) ? "&nbsp;&nbsp;<span class='points-text-inverse'>5 ".__("puntos","enroporra")."</span>" : "";
+				$response.= "<div class='top-scorer-bet'>".$refereeLabel.$refereeHit."</div>";
+			} elseif ($this->getCompetition()->getStage()>=EP_Competition::PLAYOFF_PLAYING) {
+				$response.= "<div class='top-scorer-bet'>".__("Este porrista no participa en la segunda fase","enroporra")."</div>";
+			}
 		}
 		function cmp_scores_priorize_second_stage($a,$b) {
 			if ($a["fixture"]->getTournament()=="groups" && $b["fixture"]->getTournament()!="groups") return true;

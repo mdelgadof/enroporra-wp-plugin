@@ -338,8 +338,8 @@ class EP_Bet {
 		$validationScores = true;
 		foreach ($groupFixtures as $fixture) {
 			if (!isset($args["scores"][$fixture->getFixtureNumber()])) { $validationScores=false; break; }
-			if (!isset($args["scores"][$fixture->getFixtureNumber()]["s1"]) || !is_integer($args["scores"][$fixture->getFixtureNumber()]["s1"]) || $args["scores"][$fixture->getId()]["s1"]<0 || $args["scores"][$fixture->getFixtureNumber()]["s1"]>20)  { $validationScores=false; break; }
-			if (!isset($args["scores"][$fixture->getFixtureNumber()]["s2"]) || !is_integer($args["scores"][$fixture->getFixtureNumber()]["s2"]) || $args["scores"][$fixture->getId()]["s2"]<0 || $args["scores"][$fixture->getFixtureNumber()]["s2"]>20)  { $validationScores=false; break; }
+			if (!isset($args["scores"][$fixture->getFixtureNumber()]["s1"]) || !is_integer($args["scores"][$fixture->getFixtureNumber()]["s1"]) || $args["scores"][$fixture->getFixtureNumber()]["s1"]<0 || $args["scores"][$fixture->getFixtureNumber()]["s1"]>20)  { $validationScores=false; break; }
+			if (!isset($args["scores"][$fixture->getFixtureNumber()]["s2"]) || !is_integer($args["scores"][$fixture->getFixtureNumber()]["s2"]) || $args["scores"][$fixture->getFixtureNumber()]["s2"]<0 || $args["scores"][$fixture->getFixtureNumber()]["s2"]>20)  { $validationScores=false; break; }
 		}
 		if (!$validationScores) throw new Exception('Scores are not properly filled at EP_Bet::createBet',-1);
 

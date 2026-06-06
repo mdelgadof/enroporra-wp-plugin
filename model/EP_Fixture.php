@@ -117,8 +117,8 @@ class EP_Fixture {
 
 	public function isLive() {
 		if ($this->isPlayed()) return false;
-		else if (gmdate("Y-m-d H:i:s")>$this->getRawDate()) return true;
-		else return false;
+		if (get_post_meta($this->getId(), 'ep_test_live', true)) return true;
+		return gmdate("Y-m-d H:i:s") > $this->getRawDate();
 	}
 
 	public function isPlayed() {

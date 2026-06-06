@@ -51,19 +51,28 @@ class EP_LiveScore {
             'posts_per_page' => 15,
             'fields'         => 'ids',
             'meta_query'     => [
-                'relation' => 'AND',
+                'relation' => 'OR',
+                // Normal: kickoff in the last 3 hours with a fotmob_id
                 [
-                    'key'     => 'fotmob_id',
-                    'compare' => 'EXISTS',
-                ],
-                [
-                    'key'     => 'date',
-                    'value'   => [
-                        gmdate('Y-m-d H:i:s', time() - 10800),
-                        gmdate('Y-m-d H:i:s'),
+                    'relation' => 'AND',
+                    [
+                        'key'     => 'fotmob_id',
+                        'compare' => 'EXISTS',
                     ],
-                    'compare' => 'BETWEEN',
-                    'type'    => 'DATETIME',
+                    [
+                        'key'     => 'date',
+                        'value'   => [
+                            gmdate('Y-m-d H:i:s', time() - 10800),
+                            gmdate('Y-m-d H:i:s'),
+                        ],
+                        'compare' => 'BETWEEN',
+                        'type'    => 'DATETIME',
+                    ],
+                ],
+                // Test override: fixtures explicitly marked as live for testing
+                [
+                    'key'     => 'ep_test_live',
+                    'value'   => '1',
                 ],
             ],
         ]);

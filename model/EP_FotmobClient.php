@@ -42,10 +42,28 @@ class EP_FotmobClient {
      * Shape: ['home'=>['score'=>int,'name'=>str], 'away'=>[...], 'status'=>['finished'=>bool,'started'=>bool,'ongoing'=>bool,'liveTime'=>['short'=>str],...]]
      */
     public static function getMatchScore(string $fotmob_id): ?array {
+        if (str_starts_with($fotmob_id, 'TEST_')) {
+            return self::getMockMatchScore($fotmob_id);
+        }
         $path = '/api/data/match-score?matchId=' . rawurlencode($fotmob_id);
         $data = self::get($path);
         if ($data === null) return null;
         return $data['match'] ?? null;
+    }
+
+    private static function getMockMatchScore(string $fotmob_id): array {
+        $suffix = substr($fotmob_id, 5); // strip 'TEST_'
+        switch ($suffix) {
+            case 'HT':
+                return ['home' => ['score' => 1, 'name' => 'test'], 'away' => ['score' => 0, 'name' => 'test'],
+                        'status' => ['finished' => false, 'started' => true, 'liveTime' => ['short' => 'HT']]];
+            case 'FINISHED':
+                return ['home' => ['score' => 2, 'name' => 'test'], 'away' => ['score' => 1, 'name' => 'test'],
+                        'status' => ['finished' => true, 'started' => true, 'liveTime' => ['short' => '']]];
+            default: // LIVE
+                return ['home' => ['score' => 1, 'name' => 'test'], 'away' => ['score' => 0, 'name' => 'test'],
+                        'status' => ['finished' => false, 'started' => true, 'liveTime' => ['short' => "67'"]]];
+        }
     }
 
     /**

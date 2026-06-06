@@ -264,7 +264,7 @@ class EP_Competition {
 		$found = 0;
 		foreach ($posts as $post) {
 			$fixture = new EP_Fixture($post->ID);
-			if ($fixture->isFuture()) {
+			if (!$fixture->isPlayed()) {
 				if (!$returnMatchForThird && $fixture->getTournament()=="third") continue;
 				$found++;
 				$response[]=$fixture;

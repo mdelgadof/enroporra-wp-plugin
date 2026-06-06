@@ -34,6 +34,8 @@ class EP_Competition {
 
 	protected $bets;
 
+	protected $allBets;
+
 	protected $top_scorers;
 
 	protected $stage;
@@ -590,7 +592,8 @@ class EP_Competition {
 	 * @throws Exception
 	 */
 	public function getBets($paid=true) : array {
-		if (is_array($this->bets) && !empty($this->bets)) return $this->bets;
+		if ($paid && is_array($this->bets) && !empty($this->bets)) return $this->bets;
+		if (!$paid && is_array($this->allBets) && !empty($this->allBets)) return $this->allBets;
 		$response = array();
 		$posts = get_posts(array(
 			'post_type' => 'bet',
@@ -612,7 +615,7 @@ class EP_Competition {
 			}
 			catch (Exception $e) { throw new Exception(sprintf('%s at EP_Competition::getBets',$e->getMessage()),-1); }
 		}
-		return $this->bets = $response;
+		return $paid ? ($this->bets = $response) : ($this->allBets = $response);
 	}
 
 	public function setCurrentCompetition(): bool {

@@ -113,6 +113,10 @@ class EP_LiveScore {
         delete_post_meta($id, 'winners');
         delete_post_meta($id, 'total');
         delete_post_meta($id, 'result_ok');
+
+        foreach ($fixture->getCompetition()->getBets(false) as $bet) {
+            $bet->calculatePoints();
+        }
     }
 
     /**

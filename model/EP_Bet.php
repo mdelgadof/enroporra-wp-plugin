@@ -401,7 +401,14 @@ class EP_Bet {
 			}
 		}
 		else {
-			$user_id = wp_create_user($_POST["enroporra_name"],$_POST["enroporra_password"],$email);
+			$base_login = $_POST["enroporra_name"];
+			$user_login = $base_login;
+			$suffix = 2;
+			while (username_exists($user_login)) {
+				$user_login = $base_login . ' ' . $suffix;
+				$suffix++;
+			}
+			$user_id = wp_create_user($user_login,$_POST["enroporra_password"],$email);
 			if (is_wp_error($user_id)) {
 				$error["new_user"]=__('No se pudo crear el usuario ni la apuesta. Por favor, inténtalo más tarde.','enroporra');
 			}

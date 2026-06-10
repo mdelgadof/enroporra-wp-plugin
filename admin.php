@@ -198,17 +198,29 @@ function enroporra_bet_competition_filter() {
         echo '<option value="'.$competition->getId().'"'.$sel.'>'.$competition->getName().'</option>';
     }
     echo '</select>';
+
+    $paid_filter = $_GET['paid_filter'] ?? '';
+    echo '<select name="paid_filter">';
+    echo '<option value="">'.__('Pagadas y no pagadas','enroporra').'</option>';
+    echo '<option value="1"'.($paid_filter==='1' ? ' selected' : '').'>'.__('Solo pagadas','enroporra').'</option>';
+    echo '<option value="0"'.($paid_filter==='0' ? ' selected' : '').'>'.__('Solo no pagadas','enroporra').'</option>';
+    echo '</select>';
 }
 
 add_action('pre_get_posts', 'enroporra_bet_competition_filter_query');
 function enroporra_bet_competition_filter_query($query) {
     global $pagenow;
     if (!$query->is_admin || $pagenow !== 'edit.php' || $query->get('post_type') !== 'bet') return;
-    $competition_id = intval($_GET['competition_filter'] ?? 0);
-    if (!$competition_id) return;
     $meta_query = $query->get('meta_query') ?: array();
-    $meta_query[] = array('key' => 'competition', 'value' => $competition_id);
-    $query->set('meta_query', $meta_query);
+    $competition_id = intval($_GET['competition_filter'] ?? 0);
+    if ($competition_id) {
+        $meta_query[] = array('key' => 'competition', 'value' => $competition_id);
+    }
+    $paid_filter = $_GET['paid_filter'] ?? '';
+    if ($paid_filter !== '') {
+        $meta_query[] = array('key' => 'paid', 'value' => intval($paid_filter));
+    }
+    if ($meta_query) $query->set('meta_query', $meta_query);
 }
 
 /**

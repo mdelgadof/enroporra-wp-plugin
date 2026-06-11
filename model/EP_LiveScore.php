@@ -46,39 +46,30 @@ class EP_LiveScore {
      * regardless of played status. Callers decide what to do with played vs unplayed.
      */
     public static function getLiveFixtureCandidates(): array {
-        $query = new WP_Query([
-            'post_type'      => 'fixture',
-            'posts_per_page' => 15,
-            'fields'         => 'ids',
-            'meta_query'     => [
-                'relation' => 'OR',
-                // Normal: kickoff in the last 3 hours with a fotmob_id
-                [
-                    'relation' => 'AND',
-                    [
-                        'key'     => 'fotmob_id',
-                        'compare' => 'EXISTS',
-                    ],
-                    [
-                        'key'     => 'date',
-                        'value'   => [
-                            gmdate('Y-m-d H:i:s', time() - 10800),
-                            gmdate('Y-m-d H:i:s'),
-                        ],
-                        'compare' => 'BETWEEN',
-                        'type'    => 'DATETIME',
-                    ],
-                ],
-                // Test override: fixtures explicitly marked as live for testing
-                [
-                    'key'     => 'ep_test_live',
-                    'value'   => '1',
-                ],
-            ],
-        ]);
+        global $wpdb;
+
+        $now  = gmdate('Y-m-d H:i:s');
+        $from = gmdate('Y-m-d H:i:s', time() - 10800);
+
+        // Custom SQL avoids the multi-JOIN OR query WP_Query would generate.
+        $ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT p.ID
+             FROM {$wpdb->posts} p
+             WHERE p.post_type = 'fixture'
+               AND p.post_status IN ('publish','acf-disabled')
+               AND (
+                 (
+                   EXISTS (SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = p.ID AND meta_key = 'fotmob_id')
+                   AND EXISTS (SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = p.ID AND meta_key = 'date' AND meta_value BETWEEN %s AND %s)
+                 )
+                 OR EXISTS (SELECT 1 FROM {$wpdb->postmeta} WHERE post_id = p.ID AND meta_key = 'ep_test_live' AND meta_value = '1')
+               )",
+            $from,
+            $now
+        ));
 
         $fixtures = [];
-        foreach ($query->posts as $post_id) {
+        foreach ($ids as $post_id) {
             try {
                 $fixtures[] = new EP_Fixture((int)$post_id);
             } catch (Exception $e) {

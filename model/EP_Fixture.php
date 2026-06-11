@@ -97,7 +97,7 @@ class EP_Fixture {
 	public function getLiveMinuteLabel(): string {
 		$m = $this->getLiveMinute();
 		if (!$m) return '';
-		return ($m === 'HT') ? 'HT' : $m . "'";
+		return ($m === 'HT') ? __('Descanso', 'enroporra') : $m . "'";
 	}
 
 	public function setLiveMinute(int $minute) {

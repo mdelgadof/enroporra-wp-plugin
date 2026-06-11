@@ -131,9 +131,12 @@ class EP_LiveScore {
     /**
      * Converts FotMob liveTime.short to the format stored in live_minute.
      * "87'" → "87"  |  "45+2'" → "45+2"  |  "HT" → "HT"  |  anything else → "?"
+     * FotMob may wrap the apostrophe with U+200E (LTR marks) and use U+2019 (curly quote).
      */
     public static function parseMinute(string $short): string {
         if ($short === 'HT') return 'HT';
+        // Normalise: strip U+200E (LTR marks) and replace U+2019 curly apostrophe with ASCII '
+        $short = str_replace(["\u{200E}", "\u{2019}"], ['', "'"], $short);
         if (preg_match("/^(\d+(?:\+\d+)?)'$/", $short, $m)) return $m[1];
         return '?';
     }

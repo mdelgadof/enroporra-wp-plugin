@@ -51,6 +51,21 @@ class EP_FotmobClient {
         return $data['match'] ?? null;
     }
 
+    /**
+     * Returns non-shootout Goal events for a finished match.
+     * Each element: ['player'=>['id'=>int,'name'=>str], 'isHome'=>bool, 'ownGoal'=>bool|null,
+     *                'time'=>int, 'suffixKey'=>str, 'goalDescriptionKey'=>str]
+     */
+    public static function getMatchGoalEvents(string $fotmob_id): ?array {
+        $path = '/api/data/matchDetails?matchId=' . rawurlencode($fotmob_id);
+        $data = self::get($path);
+        if ($data === null) return null;
+        $events = $data['content']['matchFacts']['events']['events'] ?? [];
+        return array_values(array_filter($events, fn($e) =>
+            ($e['type'] ?? '') === 'Goal' && empty($e['isPenaltyShootoutEvent'])
+        ));
+    }
+
     private static function getMockMatchScore(string $fotmob_id): array {
         $suffix = substr($fotmob_id, 5); // strip 'TEST_'
         switch ($suffix) {

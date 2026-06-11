@@ -77,6 +77,14 @@ class EP_Player {
 		else return false;
 	}
 
+	public function getFotmobId(): int {
+		return (int) get_post_meta($this->getId(), 'fotmob_player_id', true);
+	}
+
+	public function setFotmobId(int $id): void {
+		if ($id > 0) update_post_meta($this->getId(), 'fotmob_player_id', $id);
+	}
+
 	public function getPost() {
 		return $this->post;
 	}

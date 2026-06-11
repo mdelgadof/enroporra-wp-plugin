@@ -101,6 +101,12 @@ class EP_LiveScore {
 
         $fixture->setWinner($winner);
 
+        // Import scorers from FotMob before calculating points
+        $fotmob_id = get_post_meta($fixture->getId(), 'fotmob_id', true);
+        if ($fotmob_id && !str_starts_with($fotmob_id, 'TEST_') && empty(get_post_meta($fixture->getId(), 'goal'))) {
+            self::importScorers($fixture, $fotmob_id);
+        }
+
         // Clear live meta
         $id = $fixture->getId();
         delete_post_meta($id, 'live_goals_team1');
@@ -117,6 +123,101 @@ class EP_LiveScore {
         foreach ($fixture->getCompetition()->getBets(false) as $bet) {
             $bet->calculatePoints();
         }
+    }
+
+    private static function importScorers(EP_Fixture $fixture, string $fotmob_id): void {
+        $events = EP_FotmobClient::getMatchGoalEvents($fotmob_id);
+        if ($events === null) {
+            error_log('EP_LiveScore: could not fetch goal events for fixture ' . $fixture->getId());
+            return;
+        }
+
+        $competition = $fixture->getCompetition();
+
+        foreach ($events as $event) {
+            $fotmob_player_id = (int)($event['player']['id'] ?? 0);
+            $fotmob_name      = trim($event['player']['name'] ?? '');
+            $is_home          = !empty($event['isHome']);
+            $is_own_goal      = !empty($event['ownGoal']);
+            $minute           = (int)($event['time'] ?? 0);
+
+            if (!$fotmob_player_id || $fotmob_name === '') continue;
+
+            // Goal type: own goal, penalty, or normal
+            if ($is_own_goal) {
+                $type = 'og';
+            } elseif (stripos($event['suffixKey'] ?? '', 'pen') !== false
+                   || stripos($event['goalDescriptionKey'] ?? '', 'pen') !== false) {
+                $type = 'p';
+            } else {
+                $type = '';
+            }
+
+            // team_for = team that BENEFITS from the goal (own goal reverses it)
+            if ($is_home) {
+                $team_for = $is_own_goal ? 2 : 1;
+            } else {
+                $team_for = $is_own_goal ? 1 : 2;
+            }
+
+            // Physical team the player belongs to
+            $player_team = $fixture->getTeam($is_home ? 1 : 2);
+
+            try {
+                $player = self::findOrCreatePlayer($fotmob_name, $fotmob_player_id, $player_team, $competition);
+                $fixture->setScorer([
+                    'player' => $player,
+                    'for'    => $team_for,
+                    'type'   => $type,
+                    'minute' => $minute,
+                ]);
+            } catch (Exception $e) {
+                error_log('EP_LiveScore: scorer import failed for "' . $fotmob_name . '": ' . $e->getMessage());
+            }
+        }
+    }
+
+    private static function findOrCreatePlayer(string $fotmob_name, int $fotmob_id, EP_Team $team, EP_Competition $competition): EP_Player {
+        global $wpdb;
+
+        // Fast exact lookup by fotmob_player_id (handles repeated matches)
+        $post_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'fotmob_player_id' AND meta_value = %d LIMIT 1",
+            $fotmob_id
+        ));
+        if ($post_id) return new EP_Player((int)$post_id);
+
+        // Name similarity search among competition players
+        $best       = null;
+        $best_score = 0.0;
+        foreach ($competition->getPlayers() as $player) {
+            similar_text(mb_strtolower($fotmob_name), mb_strtolower($player->getName()), $pct);
+            if ($pct > $best_score) {
+                $best_score = $pct;
+                $best       = $player;
+            }
+        }
+
+        if ($best && $best_score >= 80.0) {
+            $best->setFotmobId($fotmob_id);
+            return $best;
+        }
+
+        // Create new player; split "Firstname Rest" on first space
+        $parts   = explode(' ', $fotmob_name, 2);
+        $name    = $parts[0];
+        $surname = $parts[1] ?? '';
+
+        $player = EP_Player::createPlayer([
+            'name'    => $name,
+            'surname' => $surname,
+            'team'    => $team,
+            'image'   => 'https://images.fotmob.com/image_resources/playerimages/' . $fotmob_id . '.png',
+        ]);
+        $player->setCompetition($competition);
+        $player->setFotmobId($fotmob_id);
+
+        return $player;
     }
 
     /**

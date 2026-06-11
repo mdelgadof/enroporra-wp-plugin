@@ -185,12 +185,17 @@ class EP_LiveScore {
             "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'fotmob_player_id' AND meta_value = %d LIMIT 1",
             $fotmob_id
         ));
-        if ($post_id) return new EP_Player((int)$post_id);
+        if ($post_id) {
+            $player = new EP_Player((int)$post_id);
+            $player->setCompetition($competition);
+            return $player;
+        }
 
-        // Name similarity search among competition players
+        // Name similarity search among ALL players in the DB — catches players from previous
+        // competitions who aren't yet registered in this one.
         $best       = null;
         $best_score = 0.0;
-        foreach ($competition->getPlayers() as $player) {
+        foreach (EP_Player::getAllPlayers() as $player) {
             similar_text(mb_strtolower($fotmob_name), mb_strtolower($player->getName()), $pct);
             if ($pct > $best_score) {
                 $best_score = $pct;
@@ -200,6 +205,7 @@ class EP_LiveScore {
 
         if ($best && $best_score >= 80.0) {
             $best->setFotmobId($fotmob_id);
+            $best->setCompetition($competition); // no-op if already registered
             return $best;
         }
 

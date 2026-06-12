@@ -120,8 +120,14 @@ class EP_LiveScore {
         delete_post_meta($id, 'total');
         delete_post_meta($id, 'result_ok');
 
-        foreach ($fixture->getCompetition()->getBets(false) as $bet) {
-            $bet->calculatePoints();
+        $competition = $fixture->getCompetition();
+        foreach ($competition->getBets(false) as $bet) {
+            try {
+                $bet->setCompetition($competition);
+                $bet->calculatePoints();
+            } catch (Exception $e) {
+                error_log('EP_LiveScore: calculatePoints failed for bet ' . $bet->getId() . ': ' . $e->getMessage());
+            }
         }
     }
 

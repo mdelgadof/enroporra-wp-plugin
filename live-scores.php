@@ -21,6 +21,7 @@ function ep_rest_live_scores(WP_REST_Request $request): WP_REST_Response {
     if ($token !== get_option('ep_live_score_token')) {
         return new WP_REST_Response(['error' => 'Unauthorized'], 401);
     }
+    ignore_user_abort(true);
     $stats = EP_LiveScore::run();
     return new WP_REST_Response($stats, 200);
 }

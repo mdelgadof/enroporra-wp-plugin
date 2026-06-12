@@ -202,6 +202,10 @@ class EP_Bet {
 		return $this->competition = new EP_Competition(get_post_meta($this->getId(),'competition',true));
 	}
 
+	public function setCompetition(EP_Competition $competition): void {
+		$this->competition = $competition;
+	}
+
 	public function isPaid() : bool {
 		return (bool) get_post_meta($this->getId(),'paid',true);
 	}

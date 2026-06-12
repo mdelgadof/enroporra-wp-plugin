@@ -302,8 +302,14 @@ function ep_fixture_save_after_acf($post_id) {
 	        if ($fixture->getGoals(1)<$fixture->getGoals(2)) $fixture->setWinner(2);
         }
 		// Calculate all bet points each time a fixture score is saved
-		foreach ($fixture->getCompetition()->getBets(false) as $bet) {
-			$bet->calculatePoints();
+		$competition = $fixture->getCompetition();
+		foreach ($competition->getBets(false) as $bet) {
+			try {
+				$bet->setCompetition($competition);
+				$bet->calculatePoints();
+			} catch (Exception $e) {
+				error_log('ep_fixture_save_after_acf: calculatePoints failed for bet ' . $bet->getId() . ': ' . $e->getMessage());
+			}
 		}
 	}
 }

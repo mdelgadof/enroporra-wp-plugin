@@ -29,7 +29,7 @@ class EP_Team {
 	 * @return string
 	 */
 	public function getName() : string {
-		return ($this->getId()) ? get_the_title($this->getId()) : __('Por conocer','enroporra');
+		return ($this->getId()) ? __(get_the_title($this->getId()), 'enroporra') : __('Por conocer','enroporra');
 	}
 
 	/**

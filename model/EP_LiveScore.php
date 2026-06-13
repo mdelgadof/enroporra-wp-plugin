@@ -159,15 +159,14 @@ class EP_LiveScore {
                 $type = '';
             }
 
-            // team_for = team that BENEFITS from the goal (own goal reverses it)
-            if ($is_home) {
-                $team_for = $is_own_goal ? 2 : 1;
-            } else {
-                $team_for = $is_own_goal ? 1 : 2;
-            }
+            // FotMob's isHome on a goal event indicates which team the goal is CREDITED to
+            // (i.e. which side's event list it appears in). For own goals this is the benefiting
+            // team, which is the OPPOSITE team from the player who scored it.
+            $team_for = $is_home ? 1 : 2;
 
-            // Physical team the player belongs to
-            $player_team = $fixture->getTeam($is_home ? 1 : 2);
+            // Physical team the player belongs to: for own goals, the player is on the other side.
+            $player_is_home = $is_own_goal ? !$is_home : $is_home;
+            $player_team = $fixture->getTeam($player_is_home ? 1 : 2);
 
             try {
                 $player = self::findOrCreatePlayer($fotmob_name, $fotmob_player_id, $player_team, $competition);

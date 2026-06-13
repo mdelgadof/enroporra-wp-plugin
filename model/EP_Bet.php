@@ -503,10 +503,10 @@ class EP_Bet {
 			$response.="</small></div>";
 			$response.="<div class='fixture-bet'>".$score["t1"]->getFlagHTML(30)." ".$score["t1"]->getName()." <strong class='score-bet'>".$score["s1"]."</strong> ";
 			$response.=$score["t2"]->getFlagHTML(30)." ".$score["t2"]->getName()." <strong class='score-bet'>".$score["s2"]."</strong></div>";
-			if ($fixture->getTournament()!="groups" && $score["s1"]==$score["s2"]) $response.="Por penaltis: ".$score["t".$score["winner"]]->getFlagHTML(15)."<br /><br />";
+			if ($fixture->getTournament()!="groups" && $score["s1"]==$score["s2"]) $response.=__("Por penaltis","enroporra").": ".$score["t".$score["winner"]]->getFlagHTML(15)."<br /><br />";
 			if ($showPoints && $fixture->isPlayed()) {
 				$penaltiesLabel = ($fixture->getTournament()!="groups" && $fixture->getGoals(1)==$fixture->getGoals(2)) ? "(".__("penaltis","enroporra")." ".$fixture->getTeam($fixture->getWinner())->getFlagHTML(15).")" : "";
-				$response.="Partido jugado: ".$fixture->getTeam(1)->getFlagHTML(15)." ".$fixture->getGoals(1)." ".$fixture->getTeam(2)->getFlagHTML(15)." ".$fixture->getGoals(2)." ".$penaltiesLabel."<br />";
+				$response.=__("Partido jugado","enroporra").": ".$fixture->getTeam(1)->getFlagHTML(15)." ".$fixture->getGoals(1)." ".$fixture->getTeam(2)->getFlagHTML(15)." ".$fixture->getGoals(2)." ".$penaltiesLabel."<br />";
 				if ($score["points_winner"]) {
 					$plural = ($score["points_winner"]>1) ? "s":"";
 					$response.="<span class='points-text-inverse'>".$score["points_winner"]." ".__("punto","enroporra").$plural."</span>";
@@ -540,7 +540,7 @@ class EP_Bet {
 			$response.="<div class='fixture-bet'>".$team1->getFlagHTML(30)." ".$team1->getName()." <strong class='score-bet'>".$score["s1"]."</strong> ";
 			$response.=$team2->getFlagHTML(30)." ".$team2->getName()." <strong class='score-bet'>".$score["s2"]."</strong></div>";
 			if ($showPoints && $fixture->isPlayed()) {
-				$response.="Partido jugado: ".$fixture->getTeam(1)->getFlagHTML(15)." ".$fixture->getGoals(1)." ".$fixture->getTeam(2)->getFlagHTML(15)." ".$fixture->getGoals(2)."<br />";
+				$response.=__("Partido jugado","enroporra").": ".$fixture->getTeam(1)->getFlagHTML(15)." ".$fixture->getGoals(1)." ".$fixture->getTeam(2)->getFlagHTML(15)." ".$fixture->getGoals(2)."<br />";
 				if ($score["points_winner"]) {
 					$plural = ($score["points_winner"]>1) ? "s":"";
 					$response.="<span class='points-text-inverse'>".$score["points_winner"]." ".__("punto","enroporra").$plural."</span>";

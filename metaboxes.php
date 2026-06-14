@@ -301,11 +301,16 @@ function ep_fixture_save_after_acf($post_id) {
     if ($fixture->isPlayed()) {
         if ($fixture->getGoals(1) > $fixture->getGoals(2)) $fixture->setWinner(1);
         if ($fixture->getGoals(1) < $fixture->getGoals(2)) $fixture->setWinner(2);
-        // Limpia meta live cuando el admin guarda el resultado manualmente
+        // Limpia meta live y caché de stats cuando el admin guarda el resultado manualmente
         $fid = $fixture->getId();
         delete_post_meta($fid, 'live_goals_team1');
         delete_post_meta($fid, 'live_goals_team2');
         delete_post_meta($fid, 'live_minute');
+        delete_post_meta($fid, 'scores');
+        delete_post_meta($fid, 'players');
+        delete_post_meta($fid, 'winners');
+        delete_post_meta($fid, 'total');
+        delete_post_meta($fid, 'result_ok');
     }
 
     // Recalcula puntos procesando una apuesta a la vez para no agotar la memoria

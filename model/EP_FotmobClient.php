@@ -38,17 +38,20 @@ class EP_FotmobClient {
     }
 
     /**
-     * Returns match data from FotMob, or null on error / match not found.
-     * Shape: ['home'=>['score'=>int,'name'=>str], 'away'=>[...], 'status'=>['finished'=>bool,'started'=>bool,'ongoing'=>bool,'liveTime'=>['short'=>str],...]]
+     * Returns match data from FotMob.
+     * - array  → datos del partido (shape: ['home'=>['score'=>int,...], 'away'=>[...], 'status'=>[...]])
+     * - false  → FotMob ha archivado el partido ({"match":null}); el partido ha terminado pero los datos live ya no están disponibles
+     * - null   → error de red o HTTP no-200
      */
-    public static function getMatchScore(string $fotmob_id): ?array {
+    public static function getMatchScore(string $fotmob_id): array|false|null {
         if (str_starts_with($fotmob_id, 'TEST_')) {
             return self::getMockMatchScore($fotmob_id);
         }
         $path = '/api/data/match-score?matchId=' . rawurlencode($fotmob_id);
         $data = self::get($path);
         if ($data === null) return null;
-        return $data['match'] ?? null;
+        if ($data['match'] === null) return false; // archivado: partido terminado, datos live ya no disponibles
+        return $data['match'];
     }
 
     /**

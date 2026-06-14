@@ -22,7 +22,18 @@ class EP_LiveScore {
 
             $match = EP_FotmobClient::getMatchScore($fotmob_id);
             if ($match === null) {
-                error_log('EP_LiveScore: null response for fixture ' . $fixture->getId() . ' fotmob_id=' . $fotmob_id);
+                error_log('EP_LiveScore: API error for fixture ' . $fixture->getId() . ' fotmob_id=' . $fotmob_id);
+                continue;
+            }
+            if ($match === false) {
+                // FotMob ha archivado el partido: ya terminó pero match-score no devuelve datos.
+                // Reconstruimos el resultado desde los goal events y cerramos.
+                error_log('EP_LiveScore: FotMob archived fixture ' . $fixture->getId() . ', reconstructing and closing');
+                $synthetic = self::buildMatchFromArchivedData($fixture, $fotmob_id);
+                if ($synthetic !== null) {
+                    self::closeMatch($fixture, $synthetic);
+                    $stats['closed']++;
+                }
                 continue;
             }
 
@@ -129,6 +140,45 @@ class EP_LiveScore {
                 error_log('EP_LiveScore: calculatePoints failed for bet ' . $bet->getId() . ': ' . $e->getMessage());
             }
         }
+    }
+
+    /**
+     * Cuando FotMob archiva un partido (match-score devuelve false), reconstruye
+     * el array de partido necesario para closeMatch() a partir de los goal events.
+     * Fallback: último marcador live conocido en post_meta.
+     */
+    private static function buildMatchFromArchivedData(EP_Fixture $fixture, string $fotmob_id): ?array {
+        $id = $fixture->getId();
+
+        if (!str_starts_with($fotmob_id, 'TEST_')) {
+            $events = EP_FotmobClient::getMatchGoalEvents($fotmob_id);
+            if ($events !== null) {
+                // isHome en cada evento indica a qué equipo se acredita el gol (incluyendo OG)
+                $home_goals = count(array_filter($events, fn($e) => !empty($e['isHome'])));
+                $away_goals = count(array_filter($events, fn($e) => empty($e['isHome'])));
+                error_log("EP_LiveScore: reconstructed score for fixture {$id}: {$home_goals}-{$away_goals} from " . count($events) . " goal events");
+                return [
+                    'home'   => ['score' => $home_goals, 'name' => ''],
+                    'away'   => ['score' => $away_goals, 'name' => ''],
+                    'status' => ['finished' => true, 'started' => true, 'liveTime' => ['short' => '']],
+                ];
+            }
+        }
+
+        // Fallback: último marcador live conocido
+        $live_g1 = get_post_meta($id, 'live_goals_team1', true);
+        $live_g2 = get_post_meta($id, 'live_goals_team2', true);
+        if ($live_g1 !== '' && $live_g2 !== '') {
+            error_log("EP_LiveScore: closing fixture {$id} with last live score {$live_g1}-{$live_g2} (goal events unavailable)");
+            return [
+                'home'   => ['score' => (int)$live_g1, 'name' => ''],
+                'away'   => ['score' => (int)$live_g2, 'name' => ''],
+                'status' => ['finished' => true, 'started' => true, 'liveTime' => ['short' => '']],
+            ];
+        }
+
+        error_log("EP_LiveScore: cannot reconstruct score for fixture {$id}, no data available");
+        return null;
     }
 
     private static function importScorers(EP_Fixture $fixture, string $fotmob_id): void {

@@ -181,7 +181,7 @@ class EP_LiveScore {
         return null;
     }
 
-    private static function importScorers(EP_Fixture $fixture, string $fotmob_id): void {
+    public static function importScorers(EP_Fixture $fixture, string $fotmob_id): void {
         $events = EP_FotmobClient::getMatchGoalEvents($fotmob_id);
         if ($events === null) {
             error_log('EP_LiveScore: could not fetch goal events for fixture ' . $fixture->getId());

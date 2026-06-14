@@ -295,23 +295,40 @@ add_action('save_post_fixture', 'ep_fixture_metabox_scorers_save');
  */
 function ep_fixture_save_after_acf($post_id) {
 
-	if (get_post_type($post_id)==='fixture') {
-        $fixture = new EP_Fixture($post_id);
-        if ($fixture->isPlayed()) {
-            if ($fixture->getGoals(1)>$fixture->getGoals(2)) $fixture->setWinner(1);
-	        if ($fixture->getGoals(1)<$fixture->getGoals(2)) $fixture->setWinner(2);
+	if (get_post_type($post_id) !== 'fixture') return;
+
+    $fixture = new EP_Fixture($post_id);
+    if ($fixture->isPlayed()) {
+        if ($fixture->getGoals(1) > $fixture->getGoals(2)) $fixture->setWinner(1);
+        if ($fixture->getGoals(1) < $fixture->getGoals(2)) $fixture->setWinner(2);
+        // Limpia meta live cuando el admin guarda el resultado manualmente
+        $fid = $fixture->getId();
+        delete_post_meta($fid, 'live_goals_team1');
+        delete_post_meta($fid, 'live_goals_team2');
+        delete_post_meta($fid, 'live_minute');
+    }
+
+    // Recalcula puntos procesando una apuesta a la vez para no agotar la memoria
+    // con las 1.400+ apuestas de la competición.
+    $competition = $fixture->getCompetition();
+    $bet_ids = get_posts([
+        'post_type'      => 'bet',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'fields'         => 'ids',
+        'meta_query'     => [['key' => 'competition', 'value' => $competition->getId()]],
+    ]);
+    foreach ($bet_ids as $bet_id) {
+        try {
+            $bet = new EP_Bet($bet_id);
+            $bet->setCompetition($competition);
+            $bet->calculatePoints();
+        } catch (Exception $e) {
+            error_log('ep_fixture_save_after_acf: calculatePoints failed for bet ' . $bet_id . ': ' . $e->getMessage());
         }
-		// Calculate all bet points each time a fixture score is saved
-		$competition = $fixture->getCompetition();
-		foreach ($competition->getBets(false) as $bet) {
-			try {
-				$bet->setCompetition($competition);
-				$bet->calculatePoints();
-			} catch (Exception $e) {
-				error_log('ep_fixture_save_after_acf: calculatePoints failed for bet ' . $bet->getId() . ': ' . $e->getMessage());
-			}
-		}
-	}
+        unset($bet);
+        clean_post_cache($bet_id);
+    }
 }
 add_action('acf/save_post', 'ep_fixture_save_after_acf');
 

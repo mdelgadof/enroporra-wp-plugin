@@ -153,7 +153,7 @@ class EP_Bet {
 		if ($this->topScorerHit()) $points+=5; // TODO: Write a method EP_Competition::getTopScorerPoints()
 		foreach ($scores as $key => $score) {
 			if ($key>=49 && $score["winner"]=="X") {
-				if ($_GET["winnerRaro"]) echo "<a href='https://www.enroporra.es/wp-admin/post.php?post=".$this->getId()."&action=edit' target='_blank'>".$this->getName()."</a><br>";
+				if (!empty($_GET["winnerRaro"])) echo "<a href='https://www.enroporra.es/wp-admin/post.php?post=".$this->getId()."&action=edit' target='_blank'>".$this->getName()."</a><br>";
 			}
 
 			$scores[$key]["points_winner"]=$scores[$key]["points_score"]=$scores[$key]["player_goals"]=0;

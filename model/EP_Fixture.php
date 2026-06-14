@@ -310,6 +310,31 @@ class EP_Fixture {
 		return update_post_meta($this->getId(),'result_ok',$results);
 	}
 
+	public function getBetsExactResultBets(): array {
+		if (!$this->isPlayed()) return ['bets' => [], 'total' => 0];
+		$bets = $this->getCompetition()->getBets();
+		$exactBets = [];
+		$total = 0;
+		foreach ($bets as $bet) {
+			$betScores = $bet->getScores();
+			$betScore = $betScores[$this->getFixtureNumber()];
+			if (!isset($betScore["s1"]) || is_null($betScore["t1"]) || !isset($betScore["s2"]) || is_null($betScore["t2"])) continue;
+			$t1id = $betScore["t1"]->getId();
+			$t2id = $betScore["t2"]->getId();
+			if (!$t1id || !$t2id) continue;
+			$total++;
+			if ($betScore["winner"] == $this->getWinner() &&
+				$betScore["s1"] == $this->getGoals(1) &&
+				$betScore["s2"] == $this->getGoals(2)) {
+				if ($this->getTournament() == "groups" ||
+					($this->getWinner() != "X" && $betScore["t".$this->getWinner()]->getId() == $this->getTeam($this->getWinner())->getId())) {
+					$exactBets[] = $bet;
+				}
+			}
+		}
+		return ['bets' => $exactBets, 'total' => $total];
+	}
+
 	public function setBetsWinnerOk($winners) {
 		return update_post_meta($this->getId(),'winners',$winners);
 	}

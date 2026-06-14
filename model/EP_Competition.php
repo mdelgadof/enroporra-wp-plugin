@@ -610,6 +610,7 @@ class EP_Competition {
 		foreach ($posts as $post) {
 			try {
 				$bet = new EP_Bet($post->ID);
+				$bet->setCompetition($this);
 				if ($paid && !$bet->isPaid()) continue;
 				$response[] = $bet;
 			}

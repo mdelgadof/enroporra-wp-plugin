@@ -185,12 +185,19 @@ class EP_Fixture {
 		$result_ok   = $this->getBetsResultOk();
 		$total_cache = $this->getBetsStatsTotal();
 
-		// Cache hit only when both values were previously computed (total may be absent on older fixtures)
-		if ($result_ok !== '' && $result_ok !== false && $total_cache !== '' && $total_cache !== false) {
+		// Cache hit when result_ok was ever stored (including 0 — avoids re-running the loop every request)
+		if ($result_ok !== '' && $result_ok !== false) {
+			if ($total_cache === '' || $total_cache === false) {
+				// total missing on older fixtures: count cheaply without loading scores
+				$total = count($this->getCompetition()->getBets());
+				$this->setBetsStatsTotal($total);
+			} else {
+				$total = intval($total_cache);
+			}
 			return array(
 				'results' => intval($result_ok),
 				'winners' => intval($this->getBetsWinnerOk()),
-				'total'   => intval($total_cache)
+				'total'   => $total
 			);
 		}
 

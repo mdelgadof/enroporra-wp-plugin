@@ -181,18 +181,22 @@ class EP_Fixture {
 	 */
 	public function getBetsStatsPost() : array {
 
-		if (!$this->isPlayed()) return array('results'=>0,'winners'=>0);
-		$check = $this->getBetsResultOk();
+		if (!$this->isPlayed()) return array('results'=>0,'winners'=>0,'total'=>0);
+		$result_ok   = $this->getBetsResultOk();
+		$total_cache = $this->getBetsStatsTotal();
 
-		if ($check) {
+		// Cache hit only when both values were previously computed (total may be absent on older fixtures)
+		if ($result_ok !== '' && $result_ok !== false && $total_cache !== '' && $total_cache !== false) {
 			return array(
-				'results' => $this->getBetsResultOk(),
-				'winners' => $this->getBetsWinnerOk()
+				'results' => intval($result_ok),
+				'winners' => intval($this->getBetsWinnerOk()),
+				'total'   => intval($total_cache)
 			);
 		}
 
 		$bets = $this->getCompetition()->getBets();
 		$results = $winners = 0;
+		$total = count($bets);
 		foreach ($bets as $bet) {
 			$betScores = $bet->getScores();
 			$betScore = $betScores[$this->getFixtureNumber()];
@@ -209,11 +213,9 @@ class EP_Fixture {
 
 		$this->setBetsResultOk($results);
 		$this->setBetsWinnerOk($winners);
+		$this->setBetsStatsTotal($total);
 
-		return array(
-			'results' => $results,
-			'winners' => $winners
-		);
+		return array('results' => $results, 'winners' => $winners, 'total' => $total);
 	}
 
 	/**

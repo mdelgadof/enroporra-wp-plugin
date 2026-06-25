@@ -26,21 +26,33 @@ class EP_LiveScore {
                 continue;
             }
             if ($match === false) {
-                // FotMob archiva los partidos del día anterior a medianoche UTC aunque sigan en curso.
-                // Ignoramos el archivo si no han pasado 95 minutos desde el kickoff.
-                $kickoff        = strtotime($fixture->getRawDate() . ' UTC');
-                $elapsed_min    = (time() - $kickoff) / 60;
-                if ($elapsed_min < 95) {
-                    error_log('EP_LiveScore: FotMob archived fixture ' . $fixture->getId() . ' prematurely (' . (int)$elapsed_min . ' min elapsed), skipping');
+                // FotMob archiva partidos del día anterior a medianoche UTC aunque sigan en curso.
+                // Esperamos 5 minutos consecutivos en null antes de cerrar, para descartar archivos transitorios.
+                $id             = $fixture->getId();
+                $archived_since = get_post_meta($id, 'fotmob_archived_since', true);
+                if ($archived_since === '') {
+                    update_post_meta($id, 'fotmob_archived_since', time());
+                    error_log('EP_LiveScore: FotMob archived fixture ' . $id . ' — waiting to confirm');
                     continue;
                 }
-                error_log('EP_LiveScore: FotMob archived fixture ' . $fixture->getId() . ', reconstructing and closing');
+                if ((time() - (int)$archived_since) < 300) {
+                    error_log('EP_LiveScore: FotMob archived fixture ' . $id . ' (' . (int)((time() - (int)$archived_since) / 60) . ' min) — still waiting');
+                    continue;
+                }
+                delete_post_meta($id, 'fotmob_archived_since');
+                error_log('EP_LiveScore: FotMob archived fixture ' . $id . ' confirmed (5+ min), reconstructing and closing');
                 $synthetic = self::buildMatchFromArchivedData($fixture, $fotmob_id);
                 if ($synthetic !== null) {
                     self::closeMatch($fixture, $synthetic);
                     $stats['closed']++;
                 }
                 continue;
+            }
+
+            // FotMob volvió a dar datos — limpiar contador de archivo si lo había
+            $id = $fixture->getId();
+            if (get_post_meta($id, 'fotmob_archived_since', true) !== '') {
+                delete_post_meta($id, 'fotmob_archived_since');
             }
 
             $status = $match['status'] ?? [];

@@ -26,8 +26,14 @@ class EP_LiveScore {
                 continue;
             }
             if ($match === false) {
-                // FotMob ha archivado el partido: ya terminó pero match-score no devuelve datos.
-                // Reconstruimos el resultado desde los goal events y cerramos.
+                // FotMob archiva los partidos del día anterior a medianoche UTC aunque sigan en curso.
+                // Ignoramos el archivo si no han pasado 95 minutos desde el kickoff.
+                $kickoff        = strtotime($fixture->getRawDate() . ' UTC');
+                $elapsed_min    = (time() - $kickoff) / 60;
+                if ($elapsed_min < 95) {
+                    error_log('EP_LiveScore: FotMob archived fixture ' . $fixture->getId() . ' prematurely (' . (int)$elapsed_min . ' min elapsed), skipping');
+                    continue;
+                }
                 error_log('EP_LiveScore: FotMob archived fixture ' . $fixture->getId() . ', reconstructing and closing');
                 $synthetic = self::buildMatchFromArchivedData($fixture, $fotmob_id);
                 if ($synthetic !== null) {

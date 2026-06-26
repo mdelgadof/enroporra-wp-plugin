@@ -578,6 +578,12 @@ class EP_Competition {
 	/**
 	 * @return EP_Player[]
 	 */
+	public function getReferees(): array {
+		$response = array();
+		foreach (EP_Referee::getAllReferees() as $referee) if ($referee->isMyCompetition($this)) $response[] = $referee;
+		return $response;
+	}
+
 	public function getBetScorers(): array {
 		$players = $this->getPlayers();
 		$response = array();

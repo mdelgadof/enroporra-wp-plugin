@@ -124,7 +124,7 @@ function ep_bet_metabox_referee ($post) {
 	$chosenReferee = $bet->getReferee();
     if (is_null($chosenReferee)) return;
 	$competition = $bet->getCompetition();
-	$referees = EP_Referee::getAllReferees(); // TODO Need to develop EP_Competition::getReferees()
+	$referees = $competition->getReferees();
 	 ?>
     <div class="dropdown">
         <div class="dropdown-launcher"><?php __('Cargando árbitro','enroporra') ?>...</div>

@@ -37,6 +37,9 @@ body.post-type-team table .widefat td.column-team {
 body.post-type-player table td.column-team,body.post-type-player table th.column-team,body.post-type-player table td.column-photo,body.post-type-player table th.column-photo {
     width: 50px;
 }
+body.post-type-referee table td.column-country,body.post-type-referee table th.column-country {
+    width: 50px;
+}
 
 .column-bet_number {
     width: 6%;

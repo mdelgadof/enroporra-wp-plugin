@@ -157,6 +157,26 @@ function enroporra_manage_player_posts_custom_column($column,$post_id) {
 	}
 }
 /**
+ * REFEREE
+ */
+add_filter('manage_referee_posts_columns',function($columns) {
+    unset($columns);
+    $columns['country'] = __('País','enroporra');
+    $columns['title'] = __('Nombre','enroporra');
+    return $columns;
+});
+add_action('manage_referee_posts_custom_column', 'enroporra_manage_referee_posts_custom_column', 10, 2);
+function enroporra_manage_referee_posts_custom_column($column,$post_id) {
+    try { $referee = new EP_Referee($post_id); }
+    catch (Exception $e) { return; }
+
+    switch($column) {
+        case 'country' :
+            echo "<div class='flag'>".$referee->getTeam()->getFlagHTML(30)."</div>";
+            break;
+    }
+}
+/**
  * BET
  */
 

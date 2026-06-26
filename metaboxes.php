@@ -6,6 +6,7 @@ function enroporra_metaboxes() {
 	add_meta_box( 'fixtures-metabox-1', __('Goleadores','enroporra'), 'ep_fixture_metabox_scorers', 'fixture', 'normal', 'low' );
 	add_meta_box( 'fixtures-metabox-2', __('Nuevos goleadores','enroporra'), 'ep_fixture_metabox_new_scorers', 'fixture', 'normal', 'low' );
 	add_meta_box( 'players-metabox-1', __('Torneos disputados','enroporra'), 'ep_player_metabox_competitions', 'player', 'normal', 'low' );
+	add_meta_box( 'referees-metabox-1', __('Torneos arbitrados','enroporra'), 'ep_referee_metabox_competitions', 'referee', 'normal', 'low' );
 	add_meta_box( 'competitions-metabox-1', __('Competición en curso','enroporra'), 'ep_competition_metabox_current', 'competition', 'normal', 'high' );
 	add_meta_box( 'bets-metabox-1', __('Datos del apostante','enroporra'), 'ep_bet_user_data', 'bet', 'normal', 'high' );
 	add_meta_box( 'bets-metabox-2', __('Pichichi','enroporra'), 'ep_bet_metabox_scorer', 'bet', 'advanced', 'high' );
@@ -363,6 +364,34 @@ function ep_player_metabox_competitions_save($post_id) {
     $player->setBetScorer((bool)$_POST["bet_scorer"]);
 }
 add_action('save_post_player', 'ep_player_metabox_competitions_save');
+
+function ep_referee_metabox_competitions($post) {
+    $referee = new EP_Referee($post->ID);
+    $competitions = EP_Competition::getAllCompetitions();
+    wp_nonce_field( 'ep_referee_competitions_metabox_nonce', 'ep_referee_competitions_nonce' );
+    foreach ($competitions as $index => $competition) {
+        $checked = ($referee->isMyCompetition($competition)) ? "checked" : "";
+        echo '<input type="checkbox" name="competition_'.($index+1).'" value='.$competition->getId().' '.$checked.' /> '.$competition->getName().'&nbsp;&nbsp;&nbsp;';
+    }
+}
+
+function ep_referee_metabox_competitions_save($post_id) {
+    if ( ! isset( $_POST['ep_referee_competitions_nonce'] ) || ! wp_verify_nonce( $_POST['ep_referee_competitions_nonce'], 'ep_referee_competitions_metabox_nonce' ) ) {
+        return;
+    }
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+    update_post_meta($post_id,'competitions',serialize(array()));
+    $referee = new EP_Referee($post_id);
+    foreach ($_POST as $key => $value) {
+        if (substr($key,0,12)=="competition_") {
+            $competition = new EP_Competition($value);
+            $referee->setCompetition($competition);
+        }
+    }
+}
+add_action('save_post_referee', 'ep_referee_metabox_competitions_save');
 
 /**
  * @throws Exception

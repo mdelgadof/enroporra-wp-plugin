@@ -52,6 +52,38 @@ class EP_Referee {
 		return $this->name;
 	}
 
+	/**
+	 * @return EP_Competition[]
+	 * @throws Exception
+	 */
+	public function getCompetitions() : array {
+		if (is_array($this->competitions)) return $this->competitions;
+		$serialized_array = get_post_meta($this->getId(),'competitions',$single=true);
+		$response = array();
+		if ($serialized_array) {
+			$competitions_id = unserialize($serialized_array);
+			foreach ($competitions_id as $competition_id) $response[] = new EP_Competition($competition_id);
+		}
+		return $this->competitions = $response;
+	}
+
+	public function setCompetition(EP_Competition $competition) {
+		if (in_array($competition,$this->getCompetitions())) return false;
+		$this->competitions[] = $competition;
+		$competitions_id = array();
+		foreach ($this->getCompetitions() as $competition) {
+			$competitions_id[] = $competition->getId();
+		}
+		return update_post_meta($this->getId(),'competitions',serialize($competitions_id));
+	}
+
+	public function isMyCompetition(EP_Competition $competition) : bool {
+		foreach ($this->getCompetitions() as $competition_single) {
+			if ($competition_single->getId() == $competition->getId()) return true;
+		}
+		return false;
+	}
+
 	public static function createReferee($args): self {
 		if (is_array($args)) {
 			// Mandatory fields to set a player on Enroporra

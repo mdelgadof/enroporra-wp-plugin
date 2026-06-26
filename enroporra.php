@@ -8,7 +8,7 @@
  * Author URI: https://github.com/mdelgadof
  * Text domain: enroporra
  **/
-define('ENROPORRA_VERSION','20221202-1');
+define('ENROPORRA_VERSION','20260626-1');
 define('ENROPORRA_PATH',plugin_dir_path(__FILE__));
 define('ENROPORRA_PLUGIN_URI',plugin_dir_url(__FILE__));
 

@@ -40,6 +40,13 @@ body.post-type-player table td.column-team,body.post-type-player table th.column
 body.post-type-referee table td.column-country,body.post-type-referee table th.column-country {
     width: 50px;
 }
+body.post-type-referee table td.column-current_competition,body.post-type-referee table th.column-current_competition {
+    width: 120px;
+    text-align: center;
+}
+body.post-type-referee table td.column-current_competition {
+    vertical-align: middle;
+}
 
 .column-bet_number {
     width: 6%;

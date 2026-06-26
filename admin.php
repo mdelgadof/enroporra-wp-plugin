@@ -162,6 +162,8 @@ function enroporra_manage_player_posts_custom_column($column,$post_id) {
 add_filter('manage_referee_posts_columns',function($columns) {
     unset($columns);
     $columns['country'] = __('País','enroporra');
+    $current = EP_Competition::getCurrentCompetition();
+    $columns['current_competition'] = $current ? $current->getName() : __('Competición actual','enroporra');
     $columns['title'] = __('Nombre','enroporra');
     return $columns;
 });
@@ -174,8 +176,28 @@ function enroporra_manage_referee_posts_custom_column($column,$post_id) {
         case 'country' :
             echo "<div class='flag'>".$referee->getTeam()->getFlagHTML(30)."</div>";
             break;
+        case 'current_competition' :
+            $current = EP_Competition::getCurrentCompetition();
+            if (!$current) break;
+            $checked = $referee->isMyCompetition($current) ? 'checked' : '';
+            echo '<input type="checkbox" class="referee-competition-toggle" data-referee_id="'.$post_id.'" data-competition_id="'.$current->getId().'" '.$checked.' />';
+            break;
     }
 }
+
+function enroporra_toggle_referee_competition() {
+    try {
+        $referee = new EP_Referee(intval($_POST["referee_id"]));
+        $competition = new EP_Competition(intval($_POST["competition_id"]));
+    }
+    catch (Exception $e) {
+        die('Error: '.$e->getMessage());
+    }
+    if ($_POST["action_type"] == "add") $referee->setCompetition($competition);
+    else $referee->removeCompetition($competition);
+    die('OK');
+}
+add_action('wp_ajax_toggleRefereeCompetition','enroporra_toggle_referee_competition');
 /**
  * BET
  */

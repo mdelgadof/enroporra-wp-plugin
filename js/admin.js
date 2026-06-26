@@ -37,6 +37,31 @@ jQuery(document).ready(function($) {
 
     });
 
+    // Referee competition toggle
+    $('.referee-competition-toggle').on('change', function() {
+        var checkbox = $(this);
+        var referee_id = checkbox.data('referee_id');
+        var competition_id = checkbox.data('competition_id');
+        var action_type = checkbox.is(':checked') ? 'add' : 'remove';
+        checkbox.prop('disabled', true);
+        $.ajax({
+            url: global_vars.ajaxUrl,
+            type: 'post',
+            data: { action: 'toggleRefereeCompetition', referee_id: referee_id, competition_id: competition_id, action_type: action_type },
+            success: function(response) {
+                checkbox.prop('disabled', false);
+                if (response != 'OK') {
+                    checkbox.prop('checked', !checkbox.is(':checked'));
+                    console.log(response);
+                }
+            },
+            error: function() {
+                checkbox.prop('checked', !checkbox.is(':checked'));
+                checkbox.prop('disabled', false);
+            }
+        });
+    });
+
     // General dropdown selectors
     $('div.dropdown-launcher').on('click',function() {
         $(this).parent().children('ul.dropdown-content').toggle();

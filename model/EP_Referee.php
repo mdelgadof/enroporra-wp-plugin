@@ -84,6 +84,15 @@ class EP_Referee {
 		return false;
 	}
 
+	public function removeCompetition(EP_Competition $competition) {
+		$competitions_id = array();
+		foreach ($this->getCompetitions() as $comp) {
+			if ($comp->getId() != $competition->getId()) $competitions_id[] = $comp->getId();
+		}
+		$this->competitions = null;
+		return update_post_meta($this->getId(),'competitions',serialize($competitions_id));
+	}
+
 	public static function createReferee($args): self {
 		if (is_array($args)) {
 			// Mandatory fields to set a player on Enroporra

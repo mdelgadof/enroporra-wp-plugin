@@ -45,7 +45,7 @@ class EP_Competition {
 	/**
 	 * @var int
 	 */
-	protected $closedBetsTime = 30*60; // Bets are closed 30 minutes before the first match starts.
+	protected $closedBetsTime = 20*60; // Bets are closed 20 minutes before the first match starts.
 
     /**
      * @param int $id "competition" custom post type id.

@@ -206,7 +206,7 @@ class EP_Fixture {
 		$total = count($bets);
 		foreach ($bets as $bet) {
 			$betScores = $bet->getScores();
-			$betScore = $betScores[$this->getFixtureNumber()];
+			$betScore = $betScores[$this->getFixtureNumber()] ?? null;
 
 			if ( $betScore["winner"]==$this->getWinner() ) {
 				if ($this->getTournament()=="groups" || ($this->getWinner()!="X" && $betScore["t".$this->getWinner()]->getId()==$this->getTeam($this->getWinner())->getId()))
@@ -246,7 +246,7 @@ class EP_Fixture {
 		$totals = 0;
 		foreach ($bets as $bet) {
 			$betScores = $bet->getScores();
-			$betScore = $betScores[$this->getFixtureNumber()];
+			$betScore = $betScores[$this->getFixtureNumber()] ?? null;
 			if (!isset($betScore["s1"]) || is_null($betScore["t1"]) || !isset($betScore["s2"]) || is_null($betScore["t2"])) continue;
 			$t1id = $betScore["t1"]->getId();
 			$t2id = $betScore["t2"]->getId();
@@ -326,7 +326,7 @@ class EP_Fixture {
 		$total = 0;
 		foreach ($bets as $bet) {
 			$betScores = $bet->getScores();
-			$betScore = $betScores[$this->getFixtureNumber()];
+			$betScore = $betScores[$this->getFixtureNumber()] ?? null;
 			if (!isset($betScore["s1"]) || is_null($betScore["t1"]) || !isset($betScore["s2"]) || is_null($betScore["t2"])) continue;
 			$t1id = $betScore["t1"]->getId();
 			$t2id = $betScore["t2"]->getId();

@@ -253,17 +253,17 @@ class EP_Fixture {
 			if (!$t1id || !$t2id) continue;
 
 			$result = $t1id."|".$betScore["s1"]."-".$betScore["s2"]."|".$t2id;
-			$scores[$result]++;
+			$scores[$result] = ($scores[$result] ?? 0) + 1;
 			$totals++;
-			if ($betScore["s1"]>$betScore["s2"]) $winners[$t1id]++;
-			else if ($betScore["s1"]<$betScore["s2"]) $winners[$t2id]++;
+			if ($betScore["s1"]>$betScore["s2"]) $winners[$t1id] = ($winners[$t1id] ?? 0) + 1;
+			else if ($betScore["s1"]<$betScore["s2"]) $winners[$t2id] = ($winners[$t2id] ?? 0) + 1;
 			else if ($betScore["s1"]==$betScore["s2"]) {
-				if ($this->getTournament()=="groups") $winners["X"]++;
-				else $winners[($betScore["winner"]==1) ? $t1id : $t2id]++;
+				if ($this->getTournament()=="groups") $winners["X"] = ($winners["X"] ?? 0) + 1;
+				else { $wk = ($betScore["winner"]==1) ? $t1id : $t2id; $winners[$wk] = ($winners[$wk] ?? 0) + 1; }
 			}
 			$player_team_id = $bet->getPlayer()->getTeam()->getId();
 			if ($player_team_id == $this->getTeam(1)->getId() || $player_team_id == $this->getTeam(2)->getId()) {
-				$players[$player_team_id]++;
+				$players[$player_team_id] = ($players[$player_team_id] ?? 0) + 1;
 			}
 		}
 		arsort($scores);

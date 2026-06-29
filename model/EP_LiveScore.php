@@ -130,6 +130,9 @@ class EP_LiveScore {
 
         $fixture->setWinner($winner);
 
+        $competition = $fixture->getCompetition();
+        $competition->propagateWinnerToNextRound($fixture);
+
         // Import scorers from FotMob before calculating points
         $fotmob_id = get_post_meta($fixture->getId(), 'fotmob_id', true);
         if ($fotmob_id && !str_starts_with($fotmob_id, 'TEST_') && empty(get_post_meta($fixture->getId(), 'goal'))) {
@@ -149,7 +152,6 @@ class EP_LiveScore {
         delete_post_meta($id, 'total');
         delete_post_meta($id, 'result_ok');
 
-        $competition = $fixture->getCompetition();
         foreach ($competition->getBets(false) as $bet) {
             try {
                 $bet->setCompetition($competition);

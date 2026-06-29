@@ -678,6 +678,33 @@ class EP_Competition {
 		}
 	}
 
+	/**
+	 * Cuando termina un partido de eliminatoria, coloca el ganador (y el perdedor
+	 * si es una semifinal) en el fixture de la ronda siguiente.
+	 * Se llama desde EP_LiveScore::closeMatch() tras setWinner().
+	 */
+	public function propagateWinnerToNextRound(EP_Fixture $fixture): void {
+		$eligible = ['last32', 'last16', 'last8', 'last4'];
+		if (!in_array($fixture->getTournament(), $eligible)) return;
+
+		$n      = $fixture->getFixtureNumber();
+		$winner = $fixture->getWinner();
+		if (!in_array($winner, ['1', '2'])) return;
+
+		$winner_team = $fixture->getTeam((int)$winner);
+		$loser_team  = $fixture->getTeam($winner === '1' ? 2 : 1);
+
+		foreach ($this->getFixtures() as $next) {
+			$l1 = $next->getLabelTeam(1);
+			$l2 = $next->getLabelTeam(2);
+
+			if ($l1 === "W{$n}") { $next->setTeam(1, $winner_team); error_log("EP_LiveScore: placed winner {$winner_team->getName()} in fixture {$next->getId()} slot 1"); }
+			if ($l2 === "W{$n}") { $next->setTeam(2, $winner_team); error_log("EP_LiveScore: placed winner {$winner_team->getName()} in fixture {$next->getId()} slot 2"); }
+			if ($l1 === "RU{$n}") { $next->setTeam(1, $loser_team); error_log("EP_LiveScore: placed loser {$loser_team->getName()} in fixture {$next->getId()} slot 1"); }
+			if ($l2 === "RU{$n}") { $next->setTeam(2, $loser_team); error_log("EP_LiveScore: placed loser {$loser_team->getName()} in fixture {$next->getId()} slot 2"); }
+		}
+	}
+
 	public function getBetNumber() {
 		$bet_number = get_post_meta($this->getId(),'current_bet_number',true);
 		if (!$bet_number) $bet_number = 1;

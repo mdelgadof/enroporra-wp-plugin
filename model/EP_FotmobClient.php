@@ -55,6 +55,26 @@ class EP_FotmobClient {
     }
 
     /**
+     * For a knockout match decided by penalties, returns who lost (by FotMob team name).
+     * Returns ['loser_name'=>'Spain', 'home_name'=>'Morocco', 'away_name'=>'Spain'] or null
+     * if the match was not decided by penalties or data is unavailable.
+     */
+    public static function getPenaltyInfo(string $fotmob_id): ?array {
+        $path = '/api/data/matchDetails?matchId=' . rawurlencode($fotmob_id);
+        $data = self::get($path);
+        if ($data === null) return null;
+        $status = $data['header']['status'] ?? [];
+        $loser  = $status['whoLostOnPenalties'] ?? null;
+        if ($loser === null || $loser === '') return null;
+        $teams = $data['header']['teams'] ?? [];
+        return [
+            'loser_name' => $loser,
+            'home_name'  => $teams[0]['name'] ?? '',
+            'away_name'  => $teams[1]['name'] ?? '',
+        ];
+    }
+
+    /**
      * Returns non-shootout Goal events for a finished match.
      * Each element: ['player'=>['id'=>int,'name'=>str], 'isHome'=>bool, 'ownGoal'=>bool|null,
      *                'time'=>int, 'suffixKey'=>str, 'goalDescriptionKey'=>str]

@@ -117,16 +117,35 @@ class EP_LiveScore {
     }
 
     private static function closeMatch(EP_Fixture $fixture, array $match): void {
-        $goals1 = (int)$match['home']['score'];
-        $goals2 = (int)$match['away']['score'];
+        $goals1   = (int)$match['home']['score'];
+        $goals2   = (int)$match['away']['score'];
+        $fotmob_id = get_post_meta($fixture->getId(), 'fotmob_id', true);
 
         $fixture->setGoals(1, $goals1, false);
         $fixture->setGoals(2, $goals2, false);
 
-        if ($goals1 > $goals2)      $winner = '1';
-        elseif ($goals1 < $goals2)  $winner = '2';
-        elseif ($fixture->getTournament() === 'groups') $winner = 'X';
-        else                         $winner = '1'; // fallback: should not happen
+        if ($goals1 > $goals2) {
+            $winner = '1';
+        } elseif ($goals1 < $goals2) {
+            $winner = '2';
+        } elseif ($fixture->getTournament() === 'groups') {
+            $winner = 'X';
+        } else {
+            // Empate en eliminatoria → decidido en penaltis; consultar FotMob
+            $pen = ($fotmob_id && !str_starts_with($fotmob_id, 'TEST_'))
+                ? EP_FotmobClient::getPenaltyInfo($fotmob_id)
+                : null;
+            if ($pen === null) {
+                error_log('EP_LiveScore: empate en fixture ' . $fixture->getId() . ' (eliminatoria) pero no se pudo obtener info de penaltis — no se cierra');
+                return;
+            }
+            if ($pen['loser_name'] === $pen['home_name'])      $winner = '2'; // local pierde → visitante gana
+            elseif ($pen['loser_name'] === $pen['away_name'])  $winner = '1'; // visitante pierde → local gana
+            else {
+                error_log('EP_LiveScore: no se pudo mapear perdedor en penaltis "' . $pen['loser_name'] . '" (local="' . $pen['home_name'] . '" visitante="' . $pen['away_name'] . '") — no se cierra fixture ' . $fixture->getId());
+                return;
+            }
+        }
 
         $fixture->setWinner($winner);
 
@@ -134,7 +153,6 @@ class EP_LiveScore {
         $competition->propagateWinnerToNextRound($fixture);
 
         // Import scorers from FotMob before calculating points
-        $fotmob_id = get_post_meta($fixture->getId(), 'fotmob_id', true);
         if ($fotmob_id && !str_starts_with($fotmob_id, 'TEST_') && empty(get_post_meta($fixture->getId(), 'goal'))) {
             self::importScorers($fixture, $fotmob_id);
         }
@@ -308,6 +326,7 @@ class EP_LiveScore {
      */
     public static function parseMinute(string $short): string {
         if ($short === 'HT') return 'HT';
+        if (in_array($short, ['PS', 'Pen', 'pen'])) return 'PS';
         // Normalise: strip U+200E (LTR marks) and replace U+2019 curly apostrophe with ASCII '
         $short = str_replace(["\u{200E}", "\u{2019}"], ['', "'"], $short);
         if (preg_match("/^(\d+(?:\+\d+)?)'$/", $short, $m)) return $m[1];

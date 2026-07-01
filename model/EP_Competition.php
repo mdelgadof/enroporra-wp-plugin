@@ -224,6 +224,103 @@ class EP_Competition {
 		return $response;
 	}
 
+	public function buildRankingCache(): void {
+		$bets = $this->getBets(true);
+		if (empty($bets)) return;
+
+		usort($bets, function(EP_Bet $a, EP_Bet $b) {
+			if ($a->getPoints() > $b->getPoints()) return -1;
+			if ($a->getPoints() < $b->getPoints()) return 1;
+			$name1 = str_replace(['á','é','í','ó','ú'], ['a','e','i','o','u'], mb_strtolower($a->getName()));
+			$name2 = str_replace(['á','é','í','ó','ú'], ['a','e','i','o','u'], mb_strtolower($b->getName()));
+			return strcmp($name1, $name2);
+		});
+
+		// Mapa player_id → goles, escaneando fixtures una sola vez
+		$goalCounts = [];
+		foreach ($this->getFixtures() as $fixture) {
+			if (!$fixture->isPlayed()) continue;
+			foreach ($fixture->getScorers() as $scorer) {
+				$pid = $scorer['player']->getId();
+				$goalCounts[$pid] = ($goalCounts[$pid] ?? 0) + 1;
+			}
+		}
+
+		$topScorerIds  = array_map(fn($p) => $p->getId(), $this->getTopScorers());
+		$compReferee   = $this->getReferee();
+		$compRefereeId = $compReferee ? $compReferee->getId() : null;
+
+		$nextFixtures     = $this->getNextFixtures(4);
+		$nextFixturesData = array_map(fn($f) => [
+			'number'     => $f->getFixtureNumber(),
+			'tournament' => $f->getTournament(),
+		], $nextFixtures);
+
+		$rows     = [];
+		$position = 1;
+		foreach ($bets as $key => $bet) {
+			if ($key !== 0 && $bets[$key - 1]->getPoints() > $bet->getPoints()) {
+				$position = $key + 1;
+			}
+
+			$playerId   = 0;
+			$playerName = '';
+			try {
+				$player = $bet->getPlayer();
+				if (EP_Player::isPlayer($player)) {
+					$playerId   = $player->getId();
+					$playerName = $player->getName();
+				}
+			} catch (Exception $e) {}
+
+			$refereeId   = null;
+			$refereeName = null;
+			$referee = $bet->getReferee();
+			if ($referee) {
+				$refereeId   = $referee->getId();
+				$refereeName = $referee->getName();
+			}
+
+			$nextBets = [];
+			foreach ($nextFixtures as $nextFixture) {
+				$fixtureNumber = $nextFixture->getFixtureNumber();
+				try {
+					$betScore = $bet->getFixtureBet($fixtureNumber);
+					if (empty($betScore)) continue;
+					$nextBets[$fixtureNumber] = [
+						's1'      => (int)($betScore['s1'] ?? 0),
+						's2'      => (int)($betScore['s2'] ?? 0),
+						't1_flag' => isset($betScore['t1']) ? $betScore['t1']->getFlagHTML(20) : '',
+						't2_flag' => isset($betScore['t2']) ? $betScore['t2']->getFlagHTML(20) : '',
+					];
+				} catch (Exception $e) {}
+			}
+
+			$rows[] = [
+				'id'                => $bet->getId(),
+				'position'          => $position,
+				'points'            => $bet->getPoints(),
+				'name'              => $bet->getName(),
+				'url'               => $bet->getUrl(),
+				'playoff_fulfilled' => $bet->isPlayoffFulfilled(),
+				'player_id'         => $playerId,
+				'player_name'       => $playerName,
+				'player_goals'      => $goalCounts[$playerId] ?? 0,
+				'referee_id'        => $refereeId,
+				'referee_name'      => $refereeName,
+				'owner_id'          => $bet->getOwner()->ID,
+				'next_bets'         => $nextBets,
+			];
+		}
+
+		update_option('ep_ranking_' . $this->getId(), [
+			'rows'                   => $rows,
+			'next_fixtures_data'     => $nextFixturesData,
+			'top_scorer_ids'         => $topScorerIds,
+			'competition_referee_id' => $compRefereeId,
+		], false);
+	}
+
 	/**
 	 * @return EP_Fixture[]
 	 * @throws Exception

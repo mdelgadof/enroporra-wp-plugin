@@ -178,6 +178,13 @@ class EP_LiveScore {
                 error_log('EP_LiveScore: calculatePoints failed for bet ' . $bet->getId() . ': ' . $e->getMessage());
             }
         }
+
+        // Regenerar caché del ranking con los nuevos puntos
+        try {
+            $competition->buildRankingCache();
+        } catch (Exception $e) {
+            error_log('EP_LiveScore: buildRankingCache failed: ' . $e->getMessage());
+        }
     }
 
     /**

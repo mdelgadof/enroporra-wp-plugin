@@ -335,6 +335,13 @@ function ep_fixture_save_after_acf($post_id) {
         unset($bet);
         clean_post_cache($bet_id);
     }
+
+    // Regenerar caché del ranking con los nuevos puntos
+    try {
+        $competition->buildRankingCache();
+    } catch (Exception $e) {
+        error_log('ep_fixture_save_after_acf: buildRankingCache failed: ' . $e->getMessage());
+    }
 }
 add_action('acf/save_post', 'ep_fixture_save_after_acf');
 
